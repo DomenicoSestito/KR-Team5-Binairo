@@ -1,7 +1,15 @@
 package gui;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import application.Main;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -148,7 +156,15 @@ public class GameManager {
 	
 	public String getString(int problem_size) {
 		
-		return null;
+		String url = "https://www.puzzle-binairo.com/?size=" + problem_size; 
+        String html = downloadWebPage(url);
+        
+        Pattern pattern = Pattern.compile("var task = \'(.*?)\'");
+        Matcher matcher = pattern.matcher(html);
+        matcher.find();
+        String value = matcher.group(1).toString();
+		
+		return value;
 	}
 	
 	
@@ -186,5 +202,37 @@ public class GameManager {
 			System.out.println();
 		}
 	}
+	
+	public static String downloadWebPage(String webpage) 
+    { 
+		String html = "";
+        try { 
+  
+            // Create URL object 
+            URL url = new URL(webpage); 
+            BufferedReader readr =  
+              new BufferedReader(new InputStreamReader(url.openStream())); 
+            // read each line from stream till end 
+            String line; 
+            while ((line = readr.readLine()) != null) { 
+                // writer.write(line); 
+                html = html + line;
+            } 
+  
+            readr.close(); 
+            // writer.close(); 
+            System.out.println("Successfully Downloaded."); 
+        } 
+  
+        // Exceptions 
+        catch (MalformedURLException mue) { 
+            System.out.println("Malformed URL Exception raised"); 
+        } 
+        catch (IOException ie) { 
+            System.out.println("IOException raised"); 
+        }
+        
+        return html;
+    } 
 
 }
