@@ -143,9 +143,6 @@ public class GameManager {
     			main.exitGame();
     		}
     	});
-   
-    	
-    	
     }
 	
     public Main getMain() {
