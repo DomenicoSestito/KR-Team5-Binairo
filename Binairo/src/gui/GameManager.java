@@ -38,6 +38,7 @@ public class GameManager {
 	private int matrix_size=6;
 	    
     private Button[][] circles;
+	private Boolean[][] given;
 	private Boolean[][] matrix;
 	
 	ObservableList<Integer> dim = FXCollections.observableArrayList(6,8,10,14,20);
@@ -85,6 +86,7 @@ public class GameManager {
     			}
     			
     			circles = new Button[matrix_size][matrix_size]; 
+    			given = new Boolean[matrix_size][matrix_size];
     			matrix = new Boolean[matrix_size][matrix_size];
     			
     			System.out.println(matrix_size);
@@ -103,18 +105,20 @@ public class GameManager {
 		    			circles[i][j].setOnMouseClicked(new EventHandler<Event>() {
 				    		@Override
 				    		public void handle(Event event) {
-				    			if(matrix[innerI][innerJ]==null){
-				    				circles[innerI][innerJ].setStyle("-fx-background-color: #000000");	
-				    				matrix[innerI][innerJ]=true;
+				    			if(isEditable(innerJ, innerI)){				    			
+					    			if(matrix[innerI][innerJ]==null){
+					    				circles[innerI][innerJ].setStyle("-fx-background-color: #000000");	
+					    				matrix[innerI][innerJ]=true;
+					    			}
+					    			else if(matrix[innerI][innerJ]){
+					    				circles[innerI][innerJ].setStyle("-fx-background-color: #ffffff");	
+					    				matrix[innerI][innerJ]=false;				    			
+					    			}
+					    			else if(!matrix[innerI][innerJ]){
+					    				circles[innerI][innerJ].setStyle("-fx-background-color: #b0b0b0");	
+					    				matrix[innerI][innerJ]=null;				    			
+					    			}	
 				    			}
-				    			else if(matrix[innerI][innerJ]){
-				    				circles[innerI][innerJ].setStyle("-fx-background-color: #ffffff");	
-				    				matrix[innerI][innerJ]=false;				    			
-				    			}
-				    			else if(!matrix[innerI][innerJ]){
-				    				circles[innerI][innerJ].setStyle("-fx-background-color: #b0b0b0");	
-				    				matrix[innerI][innerJ]=null;				    			
-				    			}		    			
 				    		}
 				    	});
 					}
@@ -187,7 +191,7 @@ public class GameManager {
 			
 			int skip = 1;
 			if(value != null)
-				matrix[i][j] = value == 1;
+				given[i][j] = matrix[i][j] = value == 1;
 			else 
 				skip = (c - 'a'+1);
 			
@@ -199,6 +203,10 @@ public class GameManager {
 				}
 			}
 		}
+	}
+	
+	public boolean isEditable(int i, int j) {
+		return given[i][j] == null;
 	}
 	
 	
