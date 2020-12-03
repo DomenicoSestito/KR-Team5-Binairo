@@ -59,6 +59,10 @@ public class GameManager {
     		public void handle(Event event) {
     			matrix_size = (int) size.getValue();
     			
+    			gridPane.getChildren().clear();
+
+    			gridPane.setGridLinesVisible(false);
+    			
     			switch (matrix_size) {
     			case 6:
     				problem_size = 1;
@@ -92,6 +96,7 @@ public class GameManager {
 		    			final Integer innerI = new Integer(i);
 		    			final Integer innerJ = new Integer(j);
 						circles[i][j] = new Button();
+						circles[i][j].setShape(new Circle(1.5));
 						circles[i][j].setStyle("-fx-background-color: #b0b0b0");
 						circles[i][j].setMinWidth(gridPane.getWidth()/matrix_size);
 						circles[i][j].setMinHeight(gridPane.getHeight()/matrix_size);
@@ -120,6 +125,8 @@ public class GameManager {
 						gridPane.add(circles[i][j], i, j, 1, 1);
 					}
 				}
+
+    			gridPane.setGridLinesVisible(true);
     			
     			for (int i = 0; i < matrix_size; i++) {
 					for (int j = 0; j < matrix_size; j++) {
@@ -163,6 +170,8 @@ public class GameManager {
         matcher.find();
         String value = matcher.group(1).toString();
 		
+        System.out.println(value);
+        
 		return value;
 	}
 	
