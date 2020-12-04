@@ -356,7 +356,6 @@ public class GameManager {
 		try {
 
 			String globalPath = GameManager.class.getResource("/resources").toString().substring(6);
-			
 			File myObj = new File(globalPath+"/in");
 			myObj.createNewFile();
 
@@ -365,7 +364,7 @@ public class GameManager {
 			myWriter.close();
 
 //			process = new ProcessBuilder("python", globalPath+"/binairo.py").start();
-			process = Runtime.getRuntime().exec(new String[] {"python",globalPath+"/binairo.py",globalPath+"/outputBinairo"} );
+			process = Runtime.getRuntime().exec("python " + globalPath+"/binairo.py");
 			InputStream is = process.getInputStream();
 			InputStreamReader isr = new InputStreamReader(is);
 			BufferedReader br = new BufferedReader(isr);
@@ -378,7 +377,6 @@ public class GameManager {
 			}
 
 			myObj = new File(globalPath+"/out");
-			System.out.println(myObj.getAbsolutePath());
 			Scanner myReader = new Scanner(myObj);
 
 			Boolean[][] solution = new Boolean[matrix_size][matrix_size];

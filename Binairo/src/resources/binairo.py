@@ -3,14 +3,8 @@ import os
 
 
 def main():
-    fout = open("C:/prova/outputBinairo", "w")
-    fout.write("path:\n")
-    fout.write(input())
-    fout.close()
-    
-    f = open("in","r")
-    
-    print(os.path.abspath(fout.name))
+    f = open("bin/resources/in","r")
+    fout = open("bin/resources/out", "w")
     
     size = int(f.readline())
 
@@ -20,7 +14,7 @@ def main():
 
     f.close()
     
-    model = Model("minizinc/Binairo.mzn")
+    model = Model("src/resources/minizinc/Binairo.mzn")
     gecode = Solver.lookup("gecode")
     instance = Instance(gecode, model)
     instance['size'] = size;
