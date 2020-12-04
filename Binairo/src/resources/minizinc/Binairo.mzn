@@ -2,7 +2,7 @@
 
 int: size;
 set of int: dom = 0..1;
-% bianco = 1, nero = 0
+% bianco = 0, nero = 1
 set of int: indices = 1..size;
 
 array[indices,indices] of opt dom: given;
@@ -11,10 +11,9 @@ array[indices,indices] of var dom: matrix;
 % assert size pari
 constraint assert( size mod 2 == 0, "ERRORE: LA SIZE DEVE ESSERE PARI");
 
-% assert size >= 6, vincolo sopra?
+% assert size >= 6
 constraint assert( size >= 6, "ERRORE: LA SIZE DEVE ESSERE MAGGIORE DI 6");
-
-% assert dati given in dom lo fa in automatico
+constraint assert( size <= 20, "ERRORE: LA SIZE DEVE ESSERE MINORE DI 20");
 
 %ASSIGNMENT
 constraint forall(i in indices, j in indices) ( occurs(given[i,j]) -> matrix[i,j] = given[i,j]);

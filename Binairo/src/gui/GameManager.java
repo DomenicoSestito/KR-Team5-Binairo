@@ -1,13 +1,18 @@
 package gui;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -272,8 +277,7 @@ public class GameManager {
 		
 		getSolutions();
 		 
-		Random rand = new Random();
-		Boolean[][] solution = solutions.get(rand.nextInt(solutions.size()));
+		Boolean[][] solution = solutions.get(0);
 
 		int hint=0;
 		for(int i=0;i<matrix_size;i++) {
@@ -330,7 +334,48 @@ public class GameManager {
 	}
 	
 	public void getSolutions() {
+		String param = ""+ matrix_size+"\n";
+		for (int i = 0; i < matrix_size; i++) {
+			for (int j = 0; j < matrix_size; j++) {
+				param += (matrix[i][j] == null ? 'N' : matrix[i][j] ? '1' : '0' )+" ";
+			}
+			param += "\n";
+		}
 		
+		System.out.println(param);
+		Process process;
+		try {
+			
+			File myObj = new File("C:/Users/thoma/git/KR-Team5-Binairo/Binairo/src/resources/in");
+		    myObj.createNewFile();
+		    
+		    FileWriter myWriter = new FileWriter(myObj);
+		    myWriter.write(param);
+		    myWriter.close();
+			
+			process = new ProcessBuilder("python", "C:/Users/thoma/git/KR-Team5-Binairo/Binairo/src/resources/binairo.py", " > out").start();
+			InputStream is = process.getInputStream();
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader br = new BufferedReader(isr);
+			
+			System.out.println("output cmd:");
+			String line;
+			while ((line = br.readLine()) != null) {
+			  System.out.println(line);
+			}
+			
+			myObj = new File("C:/Users/thoma/git/KR-Team5-Binairo/Binairo/src/resources/out");
+		      Scanner myReader = new Scanner(myObj);
+		      while (myReader.hasNextLine()) {
+		        String data = myReader.nextLine();
+		        System.out.println(data);
+		      }
+		      myReader.close();
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
