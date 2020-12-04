@@ -233,7 +233,6 @@ public class GameManager {
 		return given[i][j] == null;
 	}
 	
-	
 	public void printMatrix() {
 		for(int i=0;i<matrix_size;++i) {
 			for (int j = 0; j < matrix_size; j++) {
@@ -277,13 +276,22 @@ public class GameManager {
 		
 		getSolutions();
 		 
-		Boolean[][] solution = solutions.get(0);
+		Boolean[][] solution = solutions.get(1);
 
 		int hint=0;
 		for(int i=0;i<matrix_size;i++) {
 			for (int j = 0; j < matrix_size; j++) {
 				if (matrix[i][j] == null && hint==0) {
-					matrix[i][j] = solution[i][j];
+					if(!solution[i][j]) {
+						System.out.println(i+" "+j+" "+solution[i][j]);
+						matrix[i][j] = solution[i][j];
+						circles[j][i].setStyle("-fx-background-color: #ffffff");
+					}
+					else {
+						System.out.println(i+" "+j+" "+solution[i][j]);
+						matrix[i][j] = solution[i][j];
+						circles[j][i].setStyle("-fx-background-color: #000000");
+					}
 					hint++;
 				}
 			}
@@ -334,43 +342,66 @@ public class GameManager {
 	}
 	
 	public void getSolutions() {
-		String param = ""+ matrix_size+"\n";
+		String param = "" + matrix_size + "\n";
 		for (int i = 0; i < matrix_size; i++) {
 			for (int j = 0; j < matrix_size; j++) {
-				param += (matrix[i][j] == null ? 'N' : matrix[i][j] ? '1' : '0' )+" ";
+				param += (matrix[i][j] == null ? 'N' : matrix[i][j] ? '1' : '0') + " ";
 			}
 			param += "\n";
 		}
-		
+
 		System.out.println(param);
 		Process process;
 		try {
-			
-			File myObj = new File("C:/Users/thoma/git/KR-Team5-Binairo/Binairo/src/resources/in");
-		    myObj.createNewFile();
-		    
-		    FileWriter myWriter = new FileWriter(myObj);
-		    myWriter.write(param);
-		    myWriter.close();
-			
-			process = new ProcessBuilder("python", "C:/Users/thoma/git/KR-Team5-Binairo/Binairo/src/resources/binairo.py", " > out").start();
+
+			File myObj = new File("C:/Users/lucaq/git/KR-Team5-Binairo/Binairo/src/resources/in");
+			myObj.createNewFile();
+
+			FileWriter myWriter = new FileWriter(myObj);
+			myWriter.write(param);
+			myWriter.close();
+
+			process = new ProcessBuilder("python",
+					"C:/Users/lucaq/git/KR-Team5-Binairo/Binairo/src/resources/binairo.py", "< in > out").start();
 			InputStream is = process.getInputStream();
 			InputStreamReader isr = new InputStreamReader(is);
 			BufferedReader br = new BufferedReader(isr);
-			
+
 			System.out.println("output cmd:");
 			String line;
 			while ((line = br.readLine()) != null) {
-			  System.out.println(line);
+				System.out.println(line);
 			}
+
+			myObj = new File("C:/Users/lucaq/git/KR-Team5-Binairo/Binairo/src/resources/out");
+			Scanner myReader = new Scanner(myObj);
+
+			Boolean[][] solution = new Boolean[matrix_size][matrix_size];
 			
-			myObj = new File("C:/Users/thoma/git/KR-Team5-Binairo/Binairo/src/resources/out");
-		      Scanner myReader = new Scanner(myObj);
-		      while (myReader.hasNextLine()) {
-		        String data = myReader.nextLine();
-		        System.out.println(data);
-		      }
-		      myReader.close();
+			int row = 0;
+			while (myReader.hasNextLine()) {
+				String data = myReader.nextLine();
+				System.out.println(data);
+				String[] splitted = data.split("\\s+");
+
+				for (int i = 0; i < matrix_size; i++) {
+					if (splitted[i].equals("1")) {
+						solution[row][i] = true;
+					} else {
+						solution[row][i] = false;
+					}
+				}
+				row++;
+			}
+
+			for (int i = 0; i < matrix_size; ++i) {
+				for (int j = 0; j < matrix_size; j++)
+					System.out.print(solution[i][j]);
+				System.out.println();
+			}
+			solutions.add(solution);
+
+			myReader.close();
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
