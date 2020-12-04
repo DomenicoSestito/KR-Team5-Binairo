@@ -276,7 +276,7 @@ public class GameManager {
 		
 		getSolutions();
 		 
-		Boolean[][] solution = solutions.get(1);
+		Boolean[][] solution = solutions.get(0);
 
 		int hint=0;
 		for(int i=0;i<matrix_size;i++) {
@@ -352,20 +352,24 @@ public class GameManager {
 
 		System.out.println(param);
 		Process process;
+		
 		try {
 
-			File myObj = new File("C:/Users/lucaq/git/KR-Team5-Binairo/Binairo/src/resources/in");
+			String globalPath = GameManager.class.getResource("/resources").toString().substring(6);
+			
+			File myObj = new File(globalPath+"/in");
 			myObj.createNewFile();
 
 			FileWriter myWriter = new FileWriter(myObj);
 			myWriter.write(param);
 			myWriter.close();
 
-			process = new ProcessBuilder("python",
-					"C:/Users/lucaq/git/KR-Team5-Binairo/Binairo/src/resources/binairo.py", "< in > out").start();
+//			process = new ProcessBuilder("python", globalPath+"/binairo.py").start();
+			process = Runtime.getRuntime().exec(new String[] {"python",globalPath+"/binairo.py",globalPath+"/outputBinairo"} );
 			InputStream is = process.getInputStream();
 			InputStreamReader isr = new InputStreamReader(is);
 			BufferedReader br = new BufferedReader(isr);
+			
 
 			System.out.println("output cmd:");
 			String line;
@@ -373,7 +377,8 @@ public class GameManager {
 				System.out.println(line);
 			}
 
-			myObj = new File("C:/Users/lucaq/git/KR-Team5-Binairo/Binairo/src/resources/out");
+			myObj = new File(globalPath+"/out");
+			System.out.println(myObj.getAbsolutePath());
 			Scanner myReader = new Scanner(myObj);
 
 			Boolean[][] solution = new Boolean[matrix_size][matrix_size];
