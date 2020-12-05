@@ -84,7 +84,8 @@ public class GameManager {
     			
     			restart.setDisable(false);
     			
-    			result.setText("");		
+    			result.setText("");    			
+    			error.setText("");		
     			
     			gridPane.getChildren().clear();
 
@@ -222,7 +223,8 @@ public class GameManager {
     				}
     				
     			}  
-    			result.setText("");			
+    			result.setText("");		   			
+    			error.setText("");	
     		}
 		});
     }
@@ -355,6 +357,7 @@ public class GameManager {
 				}
 			}
 		}
+		checkTheMove();
 	}
 	
 	public void checkCorrectness() {
