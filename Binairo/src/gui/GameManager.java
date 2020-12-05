@@ -127,19 +127,19 @@ public class GameManager {
 		    			circles[i][j].setOnMouseClicked(new EventHandler<Event>() {
 				    		@Override
 				    		public void handle(Event event) {
-					    			if(matrix[innerJ][innerI]==null){
-					    				circles[innerI][innerJ].setStyle("-fx-background-color: #000000");	
-					    				matrix[innerJ][innerI]=true;
-					    			}
-					    			else if(matrix[innerJ][innerI]){
-					    				circles[innerI][innerJ].setStyle("-fx-background-color: #ffffff");	
-					    				matrix[innerJ][innerI]=false;
-					    			}
-					    			else if(!matrix[innerJ][innerI]){
-					    				circles[innerI][innerJ].setStyle("-fx-background-color: #b0b0b0");	
-					    				matrix[innerJ][innerI]=null;				    			
-					    			}
-					    			checkTheMove();
+				    			if(matrix[innerJ][innerI]==null){
+				    				circles[innerI][innerJ].setStyle("-fx-background-color: #000000");	
+				    				matrix[innerJ][innerI]=true;
+				    			}
+				    			else if(matrix[innerJ][innerI]){
+				    				circles[innerI][innerJ].setStyle("-fx-background-color: #ffffff");	
+				    				matrix[innerJ][innerI]=false;
+				    			}
+				    			else if(!matrix[innerJ][innerI]){
+				    				circles[innerI][innerJ].setStyle("-fx-background-color: #b0b0b0");	
+				    				matrix[innerJ][innerI]=null;				    			
+				    			}
+				    			checkTheMove();
 				    		}
 				    	});
 					}
@@ -424,11 +424,56 @@ public class GameManager {
 		
 	}
 	public void checkTheMove() {
-		if(!checkRows() || !checkColumns())
-			System.out.println("3 DI FILA");		
+		if(!checkRowsThreeInARow() || !checkColumnsThreeInARow())
+			System.out.println("3 DI FILA");
+		if(!checkTheNumberInRows() || !checkTheNumberInColumns()) {
+			System.out.println("Numero errato");
+		}
 	}
 
-	public boolean checkRows() {
+	private boolean checkTheNumberInRows() {
+		for(int i=0; i<matrix_size; i++) {
+			int contBlack=0;
+			int contWhite=0;
+			for(int j=0; j<matrix_size; j++) {
+				if(matrix[i][j]!=null) {
+					if(matrix[i][j]==true) {
+						contBlack++;
+					}
+					if(matrix[i][j]==false) {
+						contWhite++;
+					}
+				}
+			}
+			if(contBlack>matrix_size/2 || contWhite>matrix_size/2) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean checkTheNumberInColumns() {
+		for(int i=0; i<matrix_size; i++) {
+			int contBlack=0;
+			int contWhite=0;
+			for(int j=0; j<matrix_size; j++) {
+				if(matrix[j][i]!=null) {
+					if(matrix[j][i]==true) {
+						contBlack++;
+					}
+					if(matrix[j][i]==false) {
+						contWhite++;
+					}
+				}
+			}
+			if(contBlack>matrix_size/2 || contWhite>matrix_size/2) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public boolean checkRowsThreeInARow() {
 		for(int i=0; i<matrix_size; i++) {
 			for(int j=1; j<matrix_size-1; j++) {
 				if(matrix[i][j]!=null) {
@@ -440,7 +485,7 @@ public class GameManager {
 		}
 		return true;
 	}
-	public boolean checkColumns() {
+	public boolean checkColumnsThreeInARow() {
 		for(int j=0; j<matrix_size; j++) {
 			for(int i=1; i<matrix_size-1; i++) {
 				if(matrix[i][j]!=null) {
