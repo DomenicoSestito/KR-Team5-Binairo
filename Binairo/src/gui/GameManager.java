@@ -29,6 +29,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.GridPane;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
 import javafx.scene.paint.Color;
 
 public class GameManager {
@@ -112,25 +113,33 @@ public class GameManager {
 						circles[i][j] = new Button();
 						circles[i][j].setShape(new Circle(1.5));
 						circles[i][j].setStyle("-fx-background-color: #b0b0b0");
-						circles[i][j].setMinWidth(gridPane.getWidth()/matrix_size);
+						circles[i][j].setMinWidth(gridPane.getWidth()/matrix_size);					
 						circles[i][j].setMinHeight(gridPane.getHeight()/matrix_size);
+						if(!isEditable(j,i)) {
+							circles[i][j].setText(".");
+							circles[i][j].setDisable(true);
+							circles[i][j].setOpacity(1);
+							circles[i][j].setFont(new Font(20));
+							if(given[j][i]) {
+								circles[i][j].setTextFill(Color.WHITE);
+							}
+						}		
 		    			circles[i][j].setOnMouseClicked(new EventHandler<Event>() {
 				    		@Override
 				    		public void handle(Event event) {
-				    			if(isEditable(innerJ, innerI)){				    			
-					    			if(matrix[innerI][innerJ]==null){
+					    			if(matrix[innerJ][innerI]==null){
 					    				circles[innerI][innerJ].setStyle("-fx-background-color: #000000");	
-					    				matrix[innerI][innerJ]=true;
+					    				matrix[innerJ][innerI]=true;
 					    			}
-					    			else if(matrix[innerI][innerJ]){
+					    			else if(matrix[innerJ][innerI]){
 					    				circles[innerI][innerJ].setStyle("-fx-background-color: #ffffff");	
-					    				matrix[innerI][innerJ]=false;				    			
+					    				matrix[innerJ][innerI]=false;
 					    			}
-					    			else if(!matrix[innerI][innerJ]){
+					    			else if(!matrix[innerJ][innerI]){
 					    				circles[innerI][innerJ].setStyle("-fx-background-color: #b0b0b0");	
-					    				matrix[innerI][innerJ]=null;				    			
-					    			}	
-				    			}
+					    				matrix[innerJ][innerI]=null;				    			
+					    			}
+					    			checkTheMove();
 				    		}
 				    	});
 					}
@@ -227,6 +236,7 @@ public class GameManager {
 				}
 			}
 		}
+		getSolutions();
 	}
 	
 	public boolean isEditable(int i, int j) {
@@ -274,7 +284,7 @@ public class GameManager {
 	
 	public void getHint() {
 		
-		getSolutions();
+		//getSolutions();
 		 
 		Boolean[][] solution = solutions.get(0);
 
@@ -311,7 +321,7 @@ public class GameManager {
 		
 		
 		if (complete) {
-			getSolutions();
+			//getSolutions();
 			for (Boolean[][] solution : solutions) {
 				nEqual = 0;
 				for (int i = 0; i < matrix_size; i++)
@@ -342,6 +352,7 @@ public class GameManager {
 	}
 	
 	public void getSolutions() {
+		
 		String param = "" + matrix_size + "\n";
 		for (int i = 0; i < matrix_size; i++) {
 			for (int j = 0; j < matrix_size; j++) {
@@ -410,6 +421,98 @@ public class GameManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 	}
+	public void checkTheMove() {
+		if(!checkRows() || !checkColumns())
+			System.out.println("3 DI FILA");		
+	}
+
+	public boolean checkRows() {
+		for(int i=0; i<matrix_size; i++) {
+			for(int j=1; j<matrix_size-1; j++) {
+				if(matrix[i][j]!=null) {
+					if(matrix[i][j]==matrix[i][j-1] && matrix[i][j]==matrix[i][j+1]) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+	public boolean checkColumns() {
+		for(int j=0; j<matrix_size; j++) {
+			for(int i=1; i<matrix_size-1; i++) {
+				if(matrix[i][j]!=null) {
+					if(matrix[i][j]==matrix[i-1][j] && matrix[i][j]==matrix[i+1][j]) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+	
+	
+	private boolean checkOnColumns(Integer innerI, Integer innerJ) {
+		if(innerI==0) {
+			if(matrix[innerI][innerJ]!=null && matrix[innerI][innerJ]==matrix[innerI+1][innerJ] && matrix[innerI][innerJ]==matrix[innerI+2][innerJ]) {
+				return false;
+			}
+		}
+		else if(innerI==(int) size.getValue()-1) {
+			if(matrix[innerI][innerJ]!=null && matrix[innerI][innerJ]==matrix[innerI-1][innerJ] && matrix[innerI][innerJ]==matrix[innerI-2][innerJ]) {	
+				return false;
+			}
+		}
+		else { 
+			if(innerI==1) {
+				if((matrix[innerI][innerJ]!=null && matrix[innerI][innerJ]==matrix[innerI+1][innerJ] && matrix[innerI][innerJ]==matrix[innerI-1][innerJ]) || (matrix[innerI][innerJ]!=null && matrix[innerI][innerJ]==matrix[innerI+1][innerJ] && matrix[innerI][innerJ]==matrix[innerI+2][innerJ])) {
+					return false;
+				}
+			}
+			else if(innerI==(int) size.getValue()-2) {
+				if((matrix[innerI][innerJ]!=null && matrix[innerI][innerJ]==matrix[innerI+1][innerJ] && matrix[innerI][innerJ]==matrix[innerI-1][innerJ]) || (matrix[innerI][innerJ]!=null && matrix[innerI][innerJ]==matrix[innerI-1][innerJ] && matrix[innerI][innerJ]==matrix[innerI-2][innerJ])) {
+					return false;
+				}
+			}
+			else {
+				if((matrix[innerI][innerJ]!=null && matrix[innerI][innerJ]==matrix[innerI+1][innerJ] && matrix[innerI][innerJ]==matrix[innerI-1][innerJ]) || (matrix[innerI][innerJ]!=null && matrix[innerI][innerJ]==matrix[innerI+1][innerJ] && matrix[innerI][innerJ]==matrix[innerI+2][innerJ]) || (matrix[innerI][innerJ]!=null && matrix[innerI][innerJ]==matrix[innerI-1][innerJ] && matrix[innerI][innerJ]==matrix[innerI-2][innerJ])){
+					return false;
+				}
+			}	
+		}
+		return true;
+	} 
+	private boolean checkOnRows(Integer innerI, Integer innerJ) {
+		if(innerJ==0) {
+			if(matrix[innerI][innerJ]==matrix[innerI][innerJ+1] && matrix[innerI][innerJ]==matrix[innerI][innerJ+2]) {
+				return false;
+			}
+		}
+		else if(innerJ==(int) size.getValue()-1) {
+			if(matrix[innerI][innerJ]==matrix[innerI][innerJ-1] && matrix[innerI][innerJ]==matrix[innerI][innerJ-2]) {	
+				return false;
+			}
+		}
+		else { 
+			if(innerJ==1) {
+				if((matrix[innerI][innerJ]==matrix[innerI][innerJ+1] && matrix[innerI][innerJ]==matrix[innerI][innerJ-1]) || (matrix[innerI][innerJ]==matrix[innerI][innerJ+1] && matrix[innerI][innerJ]==matrix[innerI][innerJ+2])) {
+					return false;
+				}
+			}
+			else if(innerJ==(int) size.getValue()-2) {
+				if((matrix[innerI][innerJ]==matrix[innerI][innerJ+1] && matrix[innerI][innerJ]==matrix[innerI][innerJ-1]) || ( matrix[innerI][innerJ]==matrix[innerI][innerJ-1] && matrix[innerI][innerJ]==matrix[innerI][innerJ-2])) {
+					return false;
+				}
+			}
+			else {
+				if((matrix[innerI][innerJ]==matrix[innerI][innerJ+1] && matrix[innerI][innerJ]==matrix[innerI][innerJ-1]) || (matrix[innerI][innerJ]==matrix[innerI][innerJ+1] && matrix[innerI][innerJ]==matrix[innerI][innerJ+2]) || ( matrix[innerI][innerJ]==matrix[innerI][innerJ-1] && matrix[innerI][innerJ]==matrix[innerI][innerJ-2])){
+					return false;
+				}
+			}	
+		}
+		return true;
+	} 
 
 }
