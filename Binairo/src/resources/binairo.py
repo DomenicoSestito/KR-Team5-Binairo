@@ -15,8 +15,8 @@ def main():
     f.close()
     
     model = Model("src/resources/minizinc/Binairo.mzn")
-    gecode = Solver.lookup("gecode")
-    instance = Instance(gecode, model)
+    chuffed = Solver.lookup("chuffed")
+    instance = Instance(chuffed, model)
     instance['size'] = size;
     instance['given'] = given
 
