@@ -42,9 +42,9 @@
             </GridPane>
             <Button fx:id="hint" layoutX="117.0" layoutY="455.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Hint" />
             <Button fx:id="done" layoutX="117.0" layoutY="550.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Done" />
-            <Label fx:id="result" layoutX="33.0" layoutY="755.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
+            <Label fx:id="result" layoutX="35.0" layoutY="802.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
             <Button fx:id="exit" layoutX="117.0" layoutY="645.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Exit" />
-            <Label fx:id="error" layoutX="33.0" layoutY="853.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
+            <Label fx:id="error" layoutX="35.0" layoutY="728.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
          </children>
       </Pane>
    </children>
