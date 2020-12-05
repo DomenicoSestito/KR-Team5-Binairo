@@ -115,15 +115,7 @@ public class GameManager {
 						circles[i][j].setStyle("-fx-background-color: #b0b0b0");
 						circles[i][j].setMinWidth(gridPane.getWidth()/matrix_size);					
 						circles[i][j].setMinHeight(gridPane.getHeight()/matrix_size);
-						if(!isEditable(j,i)) {
-							circles[i][j].setText(".");
-							circles[i][j].setDisable(true);
-							circles[i][j].setOpacity(1);
-							circles[i][j].setFont(new Font(20));
-							if(given[j][i]) {
-								circles[i][j].setTextFill(Color.WHITE);
-							}
-						}		
+						setFixedCircles(i, j);
 		    			circles[i][j].setOnMouseClicked(new EventHandler<Event>() {
 				    		@Override
 				    		public void handle(Event event) {
@@ -190,6 +182,18 @@ public class GameManager {
     		};
 		});
     }
+	
+	public void setFixedCircles(int i, int j) {
+		if(!isEditable(j,i)) {
+			circles[i][j].setText(".");
+			circles[i][j].setDisable(true);
+			circles[i][j].setOpacity(1);
+			circles[i][j].setFont(new Font(20));
+			if(given[j][i]) {
+				circles[i][j].setTextFill(Color.WHITE);
+			}
+		}	
+	}
 	
     public Main getMain() {
 		return main;
@@ -291,15 +295,19 @@ public class GameManager {
 		int hint=0;
 		for(int i=0;i<matrix_size;i++) {
 			for (int j = 0; j < matrix_size; j++) {
-				if (matrix[i][j] == null && hint==0) {
+				if (given[i][j] == null && solution[i][j]!=matrix[i][j] && hint==0) {
 					if(!solution[i][j]) {
 						System.out.println(i+" "+j+" "+solution[i][j]);
 						matrix[i][j] = solution[i][j];
+						given[i][j] = solution[i][j];
+						setFixedCircles(j, i);
 						circles[j][i].setStyle("-fx-background-color: #ffffff");
 					}
 					else {
 						System.out.println(i+" "+j+" "+solution[i][j]);
 						matrix[i][j] = solution[i][j];
+						given[i][j] = solution[i][j];
+						setFixedCircles(j, i);
 						circles[j][i].setStyle("-fx-background-color: #000000");
 					}
 					hint++;
