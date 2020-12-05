@@ -16,6 +16,8 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
+
 import application.Main;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -61,6 +63,8 @@ public class GameManager {
 	private Boolean[][] given;
 	private Boolean[][] matrix;
 	private Boolean[][] solution;
+	private Boolean[][] ourMatrix;
+	private Boolean[][] ourSolution;
 	
 	ObservableList<Integer> dim = FXCollections.observableArrayList(6,8,10,14,20);
 	
@@ -68,7 +72,7 @@ public class GameManager {
     
 	@FXML
     void initialize() {
-		
+		generateNewPuzzle();
 		size.setItems(dim);
 		size.setValue(6);
 		
@@ -548,6 +552,103 @@ public class GameManager {
 			}
 		}
 		return true;
+	}
+	public void generateNewPuzzle() {
+		generateMatrix();
+		generateInput();
+		removeCell();
+		
+	}
+
+	private void removeCell() {
+		Random random= new Random();
+		ourMatrix[random.nextInt(matrix_size-1)][random.nextInt(matrix_size-1)]=null;
+		
+		
+	}
+
+	private void generateInput() {
+		String param = "" + matrix_size + "\n";
+		for (int i = 0; i < matrix_size; i++) {
+			for (int j = 0; j < matrix_size; j++) {
+				param += (ourMatrix[i][j] == null ? 'N' : ourMatrix[i][j] ? '1' : '0') + " ";
+			}
+			param += "\n";
+		}
+
+		System.out.println(param);
+		Process process;
+		
+		try {
+
+			String globalPath = GameManager.class.getResource("/resources").toString().substring(6);
+			File myObj = new File(globalPath+"/in");
+			myObj.createNewFile();
+
+			FileWriter myWriter = new FileWriter(myObj);
+			myWriter.write(param);
+			myWriter.close();
+			process = Runtime.getRuntime().exec("python " + globalPath+"/binairo.py");
+			InputStream is = process.getInputStream();
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader br = new BufferedReader(isr);
+			
+
+			System.out.println("output cmd:");
+			String line;
+			while ((line = br.readLine()) != null) {
+				System.out.println(line);
+			}
+
+			myObj = new File(globalPath+"/out");
+			Scanner myReader = new Scanner(myObj);
+			
+			int row = 0;
+			while (myReader.hasNextLine()) {
+				String data = myReader.nextLine();
+				System.out.println(data);
+				String[] splitted = data.split("\\s+");
+
+				for (int i = 0; i < matrix_size; i++) {
+					if (splitted[i].equals("1")) {
+						ourMatrix[row][i] = true;
+					} else {
+						ourMatrix[row][i] = false;
+					}
+				}
+				row++;
+			}
+
+			for (int i = 0; i < matrix_size; ++i) {
+				for (int j = 0; j < matrix_size; j++)
+					System.out.print(ourMatrix[i][j]);
+				System.out.println();
+			}
+			ourSolution=ourMatrix;
+
+			myReader.close();
+		}
+		catch(Exception e) {
+			System.out.println(e);
+		}
+		
+	}
+
+	private void generateMatrix() {
+		Random random= new Random();
+		ourMatrix=new Boolean[matrix_size][matrix_size];
+		Boolean startValue=true;
+		for(int i=0;i<matrix_size;i++) {
+			ourMatrix[i][random.nextInt(matrix_size-1)]=startValue;
+			startValue= (!startValue);
+		}
+		for(int i=0;i<matrix_size;i++) {
+			for(int j=0; j<matrix_size; j++) {
+				System.out.println(ourMatrix[i][j]);
+			}
+		}
+		
+		
 	}
 
 }
