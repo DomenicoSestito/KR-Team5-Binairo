@@ -426,8 +426,7 @@ public class GameManager {
 			FileWriter myWriter = new FileWriter(myObj);
 			myWriter.write(param);
 			myWriter.close();
-
-//			process = new ProcessBuilder("python", globalPath+"/binairo.py").start();
+			
 			process = Runtime.getRuntime().exec("python " + globalPath+"/binairo.py");
 			InputStream is = process.getInputStream();
 			InputStreamReader isr = new InputStreamReader(is);
@@ -562,7 +561,52 @@ public class GameManager {
 
 	private void removeCell() {
 		Random random= new Random();
-		ourMatrix[random.nextInt(matrix_size-1)][random.nextInt(matrix_size-1)]=null;
+		int solutions = 1;
+		
+		
+		while (solutions == 1) {
+			ourMatrix[random.nextInt(matrix_size - 1)][random.nextInt(matrix_size - 1)] = null;
+			String param = "" + matrix_size + "\n";
+			for (int i = 0; i < matrix_size; i++) {
+				for (int j = 0; j < matrix_size; j++) {
+					param += (ourMatrix[i][j] == null ? 'N' : ourMatrix[i][j] ? '1' : '0') + " ";
+				}
+				param += "\n";
+			}
+//			System.out.println(param);
+			Process process;
+			try {
+
+				String globalPath = GameManager.class.getResource("/resources").toString().substring(6);
+				File myObj = new File(globalPath + "/in");
+				myObj.createNewFile();
+
+				FileWriter myWriter = new FileWriter(myObj);
+				myWriter.write(param);
+				myWriter.close();
+				process = Runtime.getRuntime().exec("python " + globalPath + "/binairoCountSolutions.py");
+				InputStream is = process.getInputStream();
+				InputStreamReader isr = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(isr);
+
+				System.out.println("output cmd2:");
+				//			String line;
+				//			while ((line = br.readLine()) != null) {
+				//				System.out.println(line);
+				//			}
+
+				myObj = new File(globalPath + "/outSolutions");
+				Scanner myReader = new Scanner(myObj);
+				solutions = Integer.valueOf(myReader.nextLine());
+				myReader.close();
+
+				System.out.println(solutions);
+
+			} catch (Exception e) {
+				System.out.println(e);
+			} 
+		}
+		
 		
 		
 	}
@@ -594,7 +638,7 @@ public class GameManager {
 			BufferedReader br = new BufferedReader(isr);
 			
 
-			System.out.println("output cmd:");
+			System.out.println("output cmd2:");
 			String line;
 			while ((line = br.readLine()) != null) {
 				System.out.println(line);
