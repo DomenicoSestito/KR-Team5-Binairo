@@ -16,8 +16,8 @@
    <children>
       <Pane prefHeight="974.0" prefWidth="1284.0" style="-fx-background-color: lightgrey;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <Button fx:id="restart" layoutX="117.0" layoutY="359.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Restart" />
-            <Button fx:id="start" layoutX="117.0" layoutY="265.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="New" />
+            <Button fx:id="restart" layoutX="115.0" layoutY="371.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Restart" />
+            <Button fx:id="start" layoutX="43.0" layoutY="269.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="New" />
             <Label layoutX="88.0" layoutY="187.0" text="Size">
                <font>
                   <Font size="25.0" />
@@ -40,11 +40,12 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
             </GridPane>
-            <Button fx:id="hint" layoutX="117.0" layoutY="455.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Hint" />
-            <Button fx:id="done" layoutX="117.0" layoutY="550.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Done" />
-            <Label fx:id="result" layoutX="35.0" layoutY="802.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
-            <Button fx:id="exit" layoutX="117.0" layoutY="645.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Exit" />
-            <Label fx:id="error" layoutX="35.0" layoutY="728.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
+            <Button fx:id="hint" layoutX="115.0" layoutY="467.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Hint" />
+            <Button fx:id="done" layoutX="115.0" layoutY="562.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Done" />
+            <Label fx:id="result" layoutX="33.0" layoutY="814.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
+            <Button fx:id="exit" layoutX="115.0" layoutY="657.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Exit" />
+            <Label fx:id="error" layoutX="33.0" layoutY="740.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
+            <Button fx:id="offline" layoutX="188.0" layoutY="269.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Offline (6x6)" />
          </children>
       </Pane>
    </children>

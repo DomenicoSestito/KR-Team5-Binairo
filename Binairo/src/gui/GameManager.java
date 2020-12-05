@@ -47,6 +47,8 @@ public class GameManager {
 	@FXML
     private Button start;
 	@FXML
+    private Button offline;
+	@FXML
     private Button restart;
 	@FXML
     private Button exit;
@@ -176,6 +178,84 @@ public class GameManager {
     		}
 			
     	});
+		
+		offline.setOnMouseClicked(new EventHandler<Event>() {
+			@Override
+			public void handle(Event event) {
+    			restart.setDisable(false);
+    			generateNewPuzzle();
+    			result.setText("");    			
+    			error.setText("");	
+    			
+    			circles = new Button[matrix_size][matrix_size]; 
+    			given = new Boolean[matrix_size][matrix_size];
+    			initial_given = new Boolean[matrix_size][matrix_size];
+    			matrix = new Boolean[matrix_size][matrix_size];
+    			solution = new Boolean[matrix_size][matrix_size];
+    			
+    			for (int i = 0; i < matrix_size; i++) {
+					for (int j = 0; j < matrix_size; j++) {
+						matrix[i][j] = ourSolution[i][j];
+						given[i][j] = matrix[i][j];
+						initial_given[i][j] = given[i][j];					
+					}
+				}
+    			getSolutions();
+    			
+    			for (int i = 0; i < matrix_size; i++) {
+					for (int j = 0; j < matrix_size; j++) {
+		    			final Integer innerI = new Integer(i);
+		    			final Integer innerJ = new Integer(j);
+						circles[i][j] = new Button();
+						circles[i][j].setShape(new Circle(1.5));
+						circles[i][j].setStyle("-fx-background-color: #b0b0b0");
+						circles[i][j].setMinWidth((gridPane.getWidth()/matrix_size)-1);					
+						circles[i][j].setMinHeight((gridPane.getHeight()/matrix_size)-1);
+						setFixedCircles(i, j);
+		    			circles[i][j].setOnMouseClicked(new EventHandler<Event>() {
+				    		@Override
+				    		public void handle(Event event) {
+				    			if(matrix[innerJ][innerI]==null){
+				    				circles[innerI][innerJ].setStyle("-fx-background-color: #000000");	
+				    				matrix[innerJ][innerI]=true;
+				    			}
+				    			else if(matrix[innerJ][innerI]){
+				    				circles[innerI][innerJ].setStyle("-fx-background-color: #ffffff");	
+				    				matrix[innerJ][innerI]=false;
+				    			}
+				    			else if(!matrix[innerJ][innerI]){
+				    				circles[innerI][innerJ].setStyle("-fx-background-color: #b0b0b0");	
+				    				matrix[innerJ][innerI]=null;				    			
+				    			}
+				    			checkTheMove();
+				    			result.setText("");
+				    		}
+				    	});
+					}
+				}
+    			
+    			for (int i = 0; i < matrix_size; i++) {
+					for (int j = 0; j < matrix_size; j++) {
+						gridPane.add(circles[i][j], i, j, 1, 1);
+					}
+				}
+    			
+    			for (int i = 0; i < matrix_size; i++) {
+					for (int j = 0; j < matrix_size; j++) {
+						if(matrix[i][j] != null) {
+							if(!matrix[i][j])
+								circles[j][i].setStyle("-fx-background-color: #ffffff");
+							else
+								circles[j][i].setStyle("-fx-background-color: #000000");
+						}
+					}
+				}
+
+    			gridPane.setGridLinesVisible(true);
+    		}	
+    			
+			
+		});
 		
     	exit.setOnMouseClicked(new EventHandler<Event>() {
     		@Override
