@@ -43,7 +43,9 @@ public class GameManager {
 	@FXML
 	private Label result;
 	@FXML
-	private Label error;
+	private Label error1;
+	@FXML
+	private Label error2;
 	@FXML
     private Button start;
 	@FXML
@@ -90,7 +92,8 @@ public class GameManager {
     			restart.setDisable(false);
     			
     			result.setText("");    			
-    			error.setText("");		
+    			error1.setText("");	  			
+    			error2.setText("");		
     			
     			gridPane.getChildren().clear();
 
@@ -185,7 +188,8 @@ public class GameManager {
     			restart.setDisable(false);
     			generateNewPuzzle();
     			result.setText("");    			
-    			error.setText("");	
+    			error1.setText("");	   			
+    			error2.setText("");	
     			
     			circles = new Button[matrix_size][matrix_size]; 
     			given = new Boolean[matrix_size][matrix_size];
@@ -307,7 +311,8 @@ public class GameManager {
     				
     			}  
     			result.setText("");		   			
-    			error.setText("");	
+    			error1.setText("");		   			
+    			error2.setText("");	
     		}
 		});
     }
@@ -553,16 +558,18 @@ public class GameManager {
 	}
 	
 	public void checkTheMove() {
-		error.setTextFill(Color.web("#ff0000"));
-		error.setAlignment(Pos.CENTER);
+		error1.setTextFill(Color.web("#ff0000"));
+		error1.setAlignment(Pos.CENTER);
+		error2.setTextFill(Color.web("#ff0000"));
+		error2.setAlignment(Pos.CENTER);
 		if(!checkRowsThreeInARow() || !checkColumnsThreeInARow())
-			error.setText("3 DI FILA");
-		else if(!checkTheNumberInRows() || !checkTheNumberInColumns()) {
-			error.setText("NUMERO ERRATO");
-		}
-		else {
-			error.setText("");
-		}
+			error1.setText("3 DI FILA");
+		else
+			error1.setText("");
+		if(!checkTheNumberInRows() || !checkTheNumberInColumns())
+			error2.setText("NUMERO ERRATO");
+		else
+			error2.setText("");
 	}
 
 	private boolean checkTheNumberInRows() {
@@ -619,6 +626,7 @@ public class GameManager {
 		}
 		return true;
 	}
+	
 	public boolean checkColumnsThreeInARow() {
 		for(int j=0; j<matrix_size; j++) {
 			for(int i=1; i<matrix_size-1; i++) {
@@ -631,6 +639,7 @@ public class GameManager {
 		}
 		return true;
 	}
+	
 	public void generateNewPuzzle() {
 		generateMatrix();
 		generateInput();
