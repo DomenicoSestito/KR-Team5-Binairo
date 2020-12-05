@@ -4,23 +4,20 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
-
 import application.Main;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -28,8 +25,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
@@ -41,7 +36,7 @@ public class GameManager {
 	private Main main;
     
 	@FXML 
-	private ComboBox size;
+	private ComboBox<Integer> size;
 	@FXML
 	private Label result;
 	@FXML
@@ -73,8 +68,17 @@ public class GameManager {
 	private Boolean[][] solution;
 	private Boolean[][] ourMatrix;
 	private Boolean[][] ourSolution;
-	
+
+    Service<?> handleOfflineService = new HandleOfflineService();
+    Service<?> handleStartService = new HandleStartService();
+    
 	ObservableList<Integer> dim = FXCollections.observableArrayList(6,8,10,14,20);
+	
+	final static String colorWhite = "-fx-background-color: #ffffff";
+	final static String colorBlack = "-fx-background-color: #000000";
+	final static String colorNull  = "-fx-background-color: #b0b0b0";
+
+	final static String globalPath = GameManager.class.getResource("/resources").toString().substring(6);
 	
     public GameManager() {}
     
@@ -83,200 +87,42 @@ public class GameManager {
 		size.setItems(dim);
 		size.setValue(6);
 		
-		loading.setVisible(false);
-		loading.setDisable(true);
+		loading.setVisible(false);		
+		restart.setDisable(true);	
+		hint.setDisable(true);	
+		done.setDisable(true);
 		
-		restart.setDisable(true);
-		
-		start.setOnMouseClicked(new EventHandler<Event>() {
-			
-			int problem_size = 0;		
-					
+		start.setOnMouseClicked(new EventHandler<Event>() {					
 			@Override
-    		public void handle(Event event) {
-    			matrix_size = (int) size.getValue();
-    			
-    			restart.setDisable(false);
-    			
-    			result.setText("");    			
-    			error1.setText("");	  			
-    			error2.setText("");		
-    			
-    			gridPane.getChildren().clear();
-
-    			gridPane.setGridLinesVisible(false);
-    			
-    			switch (matrix_size) {
-    			case 6:
-    				problem_size = 1;
-    				break;
-    			case 8:
-    				problem_size = 3;
-    				break;
-    			case 10:
-    				problem_size = 5;
-    				break;
-    			case 14:
-    				problem_size = 7;
-    				break;
-    			case 20:
-    				problem_size = 9;
-    				break;
-
-    			default:
-    				break;
-    			}
-    			
-    			circles = new Button[matrix_size][matrix_size]; 
-    			given = new Boolean[matrix_size][matrix_size];
-    			initial_given = new Boolean[matrix_size][matrix_size];
-    			matrix = new Boolean[matrix_size][matrix_size];
-    			solution = new Boolean[matrix_size][matrix_size];
-    			
-    			initMatrix(getString(problem_size));
-    			
-    			for (int i = 0; i < matrix_size; i++) {
-					for (int j = 0; j < matrix_size; j++) {
-		    			final Integer innerI = new Integer(i);
-		    			final Integer innerJ = new Integer(j);
-						circles[i][j] = new Button();
-						circles[i][j].setShape(new Circle(1.5));
-						circles[i][j].setStyle("-fx-background-color: #b0b0b0");
-						circles[i][j].setMinWidth((gridPane.getWidth()/matrix_size)-1);					
-						circles[i][j].setMinHeight((gridPane.getHeight()/matrix_size)-1);
-						setFixedCircles(i, j);
-		    			circles[i][j].setOnMouseClicked(new EventHandler<Event>() {
-				    		@Override
-				    		public void handle(Event event) {
-				    			if(matrix[innerJ][innerI]==null){
-				    				circles[innerI][innerJ].setStyle("-fx-background-color: #000000");	
-				    				matrix[innerJ][innerI]=true;
-				    			}
-				    			else if(matrix[innerJ][innerI]){
-				    				circles[innerI][innerJ].setStyle("-fx-background-color: #ffffff");	
-				    				matrix[innerJ][innerI]=false;
-				    			}
-				    			else if(!matrix[innerJ][innerI]){
-				    				circles[innerI][innerJ].setStyle("-fx-background-color: #b0b0b0");	
-				    				matrix[innerJ][innerI]=null;				    			
-				    			}
-				    			checkTheMove();
-				    			result.setText("");
-				    		}
-				    	});
-					}
+    		public void handle(Event event) {				
+				if(!handleStartService.isRunning()) {
+					loading.setVisible(true);
+					handleStartService.start();
 				}
-    			
-    			for (int i = 0; i < matrix_size; i++) {
-					for (int j = 0; j < matrix_size; j++) {
-						gridPane.add(circles[i][j], i, j, 1, 1);
-					}
-				}
-
-    			gridPane.setGridLinesVisible(true);
-    			
-    			for (int i = 0; i < matrix_size; i++) {
-					for (int j = 0; j < matrix_size; j++) {
-						if(matrix[i][j] != null) {
-							if(!matrix[i][j])
-								circles[j][i].setStyle("-fx-background-color: #ffffff");
-							else
-								circles[j][i].setStyle("-fx-background-color: #000000");
-						}
-					}
-				}
-    		}
-			
+    		}			
     	});
+		
+		handleStartService.setOnSucceeded(e ->{
+			loading.setVisible(false);
+			handleStartService.reset();
+		});
+		
 		
 		offline.setOnMouseClicked(new EventHandler<Event>() {
 			@Override
-			public void handle(Event event) {
-				new Thread(new Runnable() {
-					
-					@Override
-					public void run() {
-						loading.setDisable(false);
-						loading.setVisible(true);
-					}
-					
-				}).start();
-				
-    			restart.setDisable(false);
-    			generateNewPuzzle();
-    			result.setText("");    			
-    			error1.setText("");	   			
-    			error2.setText("");	
-    			
-    			circles = new Button[matrix_size][matrix_size]; 
-    			given = new Boolean[matrix_size][matrix_size];
-    			initial_given = new Boolean[matrix_size][matrix_size];
-    			matrix = new Boolean[matrix_size][matrix_size];
-    			solution = new Boolean[matrix_size][matrix_size];
-    			
-    			for (int i = 0; i < matrix_size; i++) {
-					for (int j = 0; j < matrix_size; j++) {
-						matrix[i][j] = ourSolution[i][j];
-						given[i][j] = matrix[i][j];
-						initial_given[i][j] = given[i][j];					
-					}
+			public void handle(Event event) {				
+				if(!handleOfflineService.isRunning()) {
+					loading.setVisible(true);				
+					handleOfflineService.start();
 				}
-    			getSolutions();
-    			
-    			for (int i = 0; i < matrix_size; i++) {
-					for (int j = 0; j < matrix_size; j++) {
-		    			final Integer innerI = new Integer(i);
-		    			final Integer innerJ = new Integer(j);
-						circles[i][j] = new Button();
-						circles[i][j].setShape(new Circle(1.5));
-						circles[i][j].setStyle("-fx-background-color: #b0b0b0");
-						circles[i][j].setMinWidth((gridPane.getWidth()/matrix_size)-1);					
-						circles[i][j].setMinHeight((gridPane.getHeight()/matrix_size)-1);
-						setFixedCircles(i, j);
-		    			circles[i][j].setOnMouseClicked(new EventHandler<Event>() {
-				    		@Override
-				    		public void handle(Event event) {
-				    			if(matrix[innerJ][innerI]==null){
-				    				circles[innerI][innerJ].setStyle("-fx-background-color: #000000");	
-				    				matrix[innerJ][innerI]=true;
-				    			}
-				    			else if(matrix[innerJ][innerI]){
-				    				circles[innerI][innerJ].setStyle("-fx-background-color: #ffffff");	
-				    				matrix[innerJ][innerI]=false;
-				    			}
-				    			else if(!matrix[innerJ][innerI]){
-				    				circles[innerI][innerJ].setStyle("-fx-background-color: #b0b0b0");	
-				    				matrix[innerJ][innerI]=null;				    			
-				    			}
-				    			checkTheMove();
-				    			result.setText("");
-				    		}
-				    	});
-					}
-				}
-    			
-    			for (int i = 0; i < matrix_size; i++) {
-					for (int j = 0; j < matrix_size; j++) {
-						gridPane.add(circles[i][j], i, j, 1, 1);
-					}
-				}
-    			
-    			for (int i = 0; i < matrix_size; i++) {
-					for (int j = 0; j < matrix_size; j++) {
-						if(matrix[i][j] != null) {
-							if(!matrix[i][j])
-								circles[j][i].setStyle("-fx-background-color: #ffffff");
-							else
-								circles[j][i].setStyle("-fx-background-color: #000000");
-						}
-					}
-				}
-
-    			gridPane.setGridLinesVisible(true);
-    		}	
-    			
-			
+			}
 		});
+		
+		handleOfflineService.setOnSucceeded(e ->{			
+			loading.setVisible(false);			
+			handleOfflineService.reset();
+		});
+		
 		
     	exit.setOnMouseClicked(new EventHandler<Event>() {
     		@Override
@@ -288,18 +134,16 @@ public class GameManager {
     	hint.setOnMouseClicked(new EventHandler<Event>() {
     		@Override
     		public void handle(Event event) {
-    			result.setText("");
-    			if(matrix!=null)
-    				getHint();
+    			result.setText("");    
+    			getHint();
     		};
 		});
     	
     	done.setOnMouseClicked(new EventHandler<Event>() {
     		@Override
     		public void handle(Event event) {
-    			result.setText("");
-    			if(matrix!=null)
-    				checkCorrectness();
+    			result.setText("");    
+    			checkCorrectness();
     		};
 		});
     	
@@ -314,25 +158,139 @@ public class GameManager {
 							circles[j][i].setText("");
 							circles[j][i].setDisable(false);
 						}
-		    			if(matrix[i][j]==null){
-		    				circles[j][i].setStyle("-fx-background-color: #b0b0b0");	
-		    			}
-		    			else if(matrix[i][j]){
-		    				circles[j][i].setStyle("-fx-background-color: #000000");	
-		    			}
-		    			else if(!matrix[i][j]){
-		    				circles[j][i].setStyle("-fx-background-color: #ffffff");	
-		    			}
-    						
-    				}
-    				
+		    			if(matrix[i][j]==null)
+		    				circles[j][i].setStyle(colorNull);		    			
+		    			else if(matrix[i][j])
+		    				circles[j][i].setStyle(colorBlack);    			
+		    			else if(!matrix[i][j])
+		    				circles[j][i].setStyle(colorWhite);	    						
+    				}    				
     			}  
-    			result.setText("");		   			
-    			error1.setText("");		   			
-    			error2.setText("");	
+    			clearText();
     		}
 		});
     }
+	
+	private void clearGrid() {
+		Platform.runLater( () -> {
+			restart.setDisable(false);
+			hint.setDisable(false);
+			done.setDisable(false);
+			
+			clearText();
+			gridPane.getChildren().clear();
+			gridPane.setGridLinesVisible(false);
+			
+		});
+	}
+	
+	private void clearText() {
+		Platform.runLater( () -> {
+			result.setText("");    			
+			error1.setText("");	  			
+			error2.setText("");	
+		});
+	}
+	
+	private void initNewMatrixes() {
+		circles		 	= new Button [matrix_size][matrix_size]; 
+		given 			= new Boolean[matrix_size][matrix_size];
+		initial_given 	= new Boolean[matrix_size][matrix_size];
+		matrix 			= new Boolean[matrix_size][matrix_size];
+		solution 		= new Boolean[matrix_size][matrix_size];
+	}
+	
+	
+	private void handleStartButton() {
+		System.out.println("Pressed Start Button");
+		
+		matrix_size = (int) size.getValue();
+		
+		clearGrid();	
+				
+		initNewMatrixes();
+		
+		initMatrixFromWebSite();
+		
+		initCircleMatrix();
+	}
+	
+	private void handleOfflineButton() {
+		System.out.println("Pressed Offline Button");
+				
+		clearGrid();
+
+		generateNewPuzzleOffline();	
+		
+		initNewMatrixes();
+		
+		for (int i = 0; i < matrix_size; i++) {
+			for (int j = 0; j < matrix_size; j++) {
+				matrix[i][j] = ourSolution[i][j];
+				given[i][j] = matrix[i][j];
+				initial_given[i][j] = given[i][j];					
+			}
+		}
+		getSolutionFromMiniZinc();
+		
+		initCircleMatrix();
+	}
+	
+	private void initCircleMatrix() {
+		for (int i = 0; i < matrix_size; i++) {
+			for (int j = 0; j < matrix_size; j++) {
+    			final Integer innerI = new Integer(i);
+    			final Integer innerJ = new Integer(j);
+				circles[i][j] = new Button();
+				circles[i][j].setShape(new Circle(1.5));
+				circles[i][j].setStyle(colorNull);
+				circles[i][j].setMinWidth((gridPane.getWidth()/matrix_size)-1);					
+				circles[i][j].setMinHeight((gridPane.getHeight()/matrix_size)-1);
+				setFixedCircles(i, j);
+    			circles[i][j].setOnMouseClicked(new EventHandler<Event>() {
+		    		@Override
+		    		public void handle(Event event) {
+		    			if(matrix[innerJ][innerI]==null){
+		    				circles[innerI][innerJ].setStyle(colorBlack);	
+		    				matrix[innerJ][innerI]=true;
+		    			}
+		    			else if(matrix[innerJ][innerI]){
+		    				circles[innerI][innerJ].setStyle(colorWhite);	
+		    				matrix[innerJ][innerI]=false;
+		    			}
+		    			else if(!matrix[innerJ][innerI]){
+		    				circles[innerI][innerJ].setStyle(colorNull);	
+		    				matrix[innerJ][innerI]=null;				    			
+		    			}
+		    			clearText();
+		    			checkMove();
+		    		}
+		    	});
+			}
+		}
+		
+		for (int i = 0; i < matrix_size; i++) {
+			for (int j = 0; j < matrix_size; j++) {
+				if(matrix[i][j] != null) {
+					if(!matrix[i][j])
+						circles[j][i].setStyle(colorWhite);
+					else
+						circles[j][i].setStyle(colorBlack);
+				}
+			}
+		}
+		
+		Platform.runLater(() -> {
+			for (int i = 0; i < matrix_size; i++) {
+				for (int j = 0; j < matrix_size; j++) {
+					gridPane.add(circles[i][j], i, j, 1, 1);
+				}
+			}
+			gridPane.setGridLinesVisible(true);
+		});
+	}
+	
+	
 	
 	public void setFixedCircles(int i, int j) {
 		if(!isEditable(j,i)) {
@@ -345,31 +303,23 @@ public class GameManager {
 			}
 		}	
 	}
-	
-    public Main getMain() {
-		return main;
-	}
-
-	public void setMain(Main main) {
-		this.main = main;
-	}
-	
-	public String getString(int problem_size) {
 		
-		String url = "https://www.puzzle-binairo.com/?size=" + problem_size; 
-        String html = downloadWebPage(url);
-        
+	
+	public void initMatrixFromWebSite() {
+		int problem_size = 0;
+		switch (matrix_size) {
+		case 6: problem_size = 1; break;
+		case 8: problem_size = 3; break;
+		case 10:problem_size = 5; break;
+		case 14:problem_size = 7; break;
+		case 20:problem_size = 9; break;
+		}
+        String html = downloadWebPage("https://www.puzzle-binairo.com/?size=" + problem_size);        
         Pattern pattern = Pattern.compile("var task = \'(.*?)\'");
         Matcher matcher = pattern.matcher(html);
         matcher.find();
-        String value = matcher.group(1).toString();
+        String s = matcher.group(1).toString();  
         
-		return value;
-	}
-	
-	
-	public void initMatrix(String s) {
-		
 		int i=0,j=0;
 		for(char c : s.toCharArray()) {			
 			Integer value = null;
@@ -393,76 +343,78 @@ public class GameManager {
 				}
 			}
 		}
-		getSolutions();
+		System.out.println("Puzzle:");
+		printMatrix(initial_given);
+		
+		getSolutionFromMiniZinc();
 	}
 	
 	public boolean isEditable(int i, int j) {
 		return given[i][j] == null;
 	}
 	
-	public void printMatrix() {
+	public void printMatrix(Boolean m[][]) {
 		for(int i=0;i<matrix_size;++i) {
-			for (int j = 0; j < matrix_size; j++) {
-				System.out.print(matrix[i][j]);
-			}
+			for (int j = 0; j < matrix_size; j++)
+				System.out.print( (m[i][j] != null ? m[i][j] ? '1' : '0' : 'N')+ " ");
 			System.out.println();
 		}
+		System.out.println("-------------------------------");
 	}
 	
 	public static String downloadWebPage(String webpage) 
     { 
 		String html = "";
+		System.out.println("downloading...");
         try { 
-  
-            // Create URL object 
             URL url = new URL(webpage); 
-            BufferedReader readr =  
-              new BufferedReader(new InputStreamReader(url.openStream())); 
-            // read each line from stream till end 
+            BufferedReader readr = new BufferedReader(new InputStreamReader(url.openStream())); 
             String line; 
             while ((line = readr.readLine()) != null) { 
-                // writer.write(line); 
                 html = html + line;
             } 
-  
             readr.close(); 
         } 
-  
-        // Exceptions 
         catch (MalformedURLException mue) { 
             System.out.println("Malformed URL Exception raised"); 
         } 
         catch (IOException ie) { 
             System.out.println("IOException raised"); 
         }
-        
+        System.out.println("downloaded");
         return html;
-    } 
-	
+    } 	
+
 	public void getHint() {
-		int hint=0;
-		for(int i=0;i<matrix_size;i++) {
-			for (int j = 0; j < matrix_size; j++) {
-				if (given[i][j] == null && solution[i][j]!=matrix[i][j] && hint==0) {
-					if(!solution[i][j]) {
-						System.out.println(i+" "+j+" "+solution[i][j]);
-						matrix[i][j] = solution[i][j];
-						given[i][j] = solution[i][j];
-						setFixedCircles(j, i);
-						circles[j][i].setStyle("-fx-background-color: #ffffff");
-					}
-					else {
-						System.out.println(i+" "+j+" "+solution[i][j]);
-						matrix[i][j] = solution[i][j];
-						given[i][j] = solution[i][j];
-						setFixedCircles(j, i);
-						circles[j][i].setStyle("-fx-background-color: #000000");
-					}
-					hint++;
-				}
+		if(isMatrixFilled())
+			return;
+		
+		Random random= new Random();
+		boolean hinted = false;
+		
+		while(!hinted) {
+			int i = random.nextInt(matrix_size);
+			int j = random.nextInt(matrix_size);
+			
+			if (given[i][j] == null && solution[i][j]!=matrix[i][j]) {
+				matrix[i][j] = solution[i][j];
+				given[i][j] = solution[i][j];
+				setFixedCircles(j, i);				
+				circles[j][i].setStyle(matrix[i][j] ? colorBlack : colorWhite);
+				
+				hinted = true;
 			}
 		}
-		checkTheMove();
+		
+		checkMove();
+	}
+	
+	private boolean isMatrixFilled() {
+		for(int i=0;i<matrix_size;i++)
+			for (int j = 0; j < matrix_size; j++)
+				if(matrix[i][j]==null)
+					return false;
+		return true;
 	}
 	
 	public void checkCorrectness() {
@@ -470,14 +422,7 @@ public class GameManager {
 		int total = matrix_size*matrix_size;
 		int nEqual = 0;
 		
-		boolean complete = true;
-		for(int i=0;i<matrix_size;i++)
-			for (int j = 0; j < matrix_size; j++)
-				if(matrix[i][j]==null)
-					complete = false;
-		
-		
-		if (complete) {
+		if (isMatrixFilled()) {
 			//getSolutions();
 			nEqual = 0;
 			for (int i = 0; i < matrix_size; i++)
@@ -488,7 +433,7 @@ public class GameManager {
 				correct = true;
 			}
 			if (correct) {
-				result.setText("CONGRATULATIONS! THE PUZZLE IS SOLVED");
+				result.setText("CONGRATULATIONS!\nTHE PUZZLE IS SOLVED");
 				result.setTextFill(Color.web("#008000"));
 				result.setAlignment(Pos.CENTER);
 			} else {
@@ -501,26 +446,19 @@ public class GameManager {
 			result.setText("THE PUZZLE IS NOT COMPLETED");
 			result.setTextFill(Color.web("#ff0000"));
 			result.setAlignment(Pos.CENTER);
-		}
-		
+		}		
 	}
 	
-	public void getSolutions() {
+	public void getSolutionFromMiniZinc() {
 		
-		String param = "" + matrix_size + "\n";
-		for (int i = 0; i < matrix_size; i++) {
-			for (int j = 0; j < matrix_size; j++) {
-				param += (matrix[i][j] == null ? 'N' : matrix[i][j] ? '1' : '0') + " ";
-			}
-			param += "\n";
-		}
+		String param = generateMatrixInputForMiniZinc(matrix);
 
-		System.out.println(param);
+//		System.out.println(param);
 		Process process;
+		System.out.println("calculating solution...");
 		
 		try {
 
-			String globalPath = GameManager.class.getResource("/resources").toString().substring(6);
 			File myObj = new File(globalPath+"/in");
 			myObj.createNewFile();
 
@@ -529,16 +467,7 @@ public class GameManager {
 			myWriter.close();
 			
 			process = Runtime.getRuntime().exec("python " + globalPath+"/binairo.py");
-			InputStream is = process.getInputStream();
-			InputStreamReader isr = new InputStreamReader(is);
-			BufferedReader br = new BufferedReader(isr);
-			
-
-			System.out.println("output cmd:");
-			String line;
-			while ((line = br.readLine()) != null) {
-				System.out.println(line);
-			}
+			process.waitFor();
 
 			myObj = new File(globalPath+"/out");
 			Scanner myReader = new Scanner(myObj);
@@ -546,7 +475,6 @@ public class GameManager {
 			int row = 0;
 			while (myReader.hasNextLine()) {
 				String data = myReader.nextLine();
-				System.out.println(data);
 				String[] splitted = data.split("\\s+");
 
 				for (int i = 0; i < matrix_size; i++) {
@@ -559,34 +487,33 @@ public class GameManager {
 				row++;
 			}
 
-			for (int i = 0; i < matrix_size; ++i) {
-				for (int j = 0; j < matrix_size; j++)
-					System.out.print(solution[i][j]);
-				System.out.println();
-			}
-
 			myReader.close();
+			
+			System.out.println("Solution:");
+			printMatrix(solution);
 
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 	}
 	
-	public void checkTheMove() {
-		error1.setTextFill(Color.web("#ff0000"));
-		error1.setAlignment(Pos.CENTER);
-		error2.setTextFill(Color.web("#ff0000"));
-		error2.setAlignment(Pos.CENTER);
-		if(!checkRowsThreeInARow() || !checkColumnsThreeInARow())
-			error1.setText("3 DI FILA");
-		else
-			error1.setText("");
-		if(!checkTheNumberInRows() || !checkTheNumberInColumns())
-			error2.setText("NUMERO ERRATO");
-		else
-			error2.setText("");
+	public void checkMove() {
+		Platform.runLater(()->{
+			error1.setTextFill(Color.web("#ff0000"));
+			error1.setAlignment(Pos.CENTER);
+			error2.setTextFill(Color.web("#ff0000"));
+			error2.setAlignment(Pos.CENTER);
+			if(!checkRowsThreeInARow() || !checkColumnsThreeInARow())
+				error1.setText("3 DI FILA");
+			else
+				error1.setText("");
+			if(!checkTheNumberInRows() || !checkTheNumberInColumns())
+				error2.setText("NUMERO ERRATO");
+			else
+				error2.setText("");
+		});
 	}
 
 	private boolean checkTheNumberInRows() {
@@ -595,17 +522,14 @@ public class GameManager {
 			int contWhite=0;
 			for(int j=0; j<matrix_size; j++) {
 				if(matrix[i][j]!=null) {
-					if(matrix[i][j]==true) {
+					if(matrix[i][j]==true) 
 						contBlack++;
-					}
-					if(matrix[i][j]==false) {
+					if(matrix[i][j]==false) 
 						contWhite++;
-					}
 				}
 			}
-			if(contBlack>matrix_size/2 || contWhite>matrix_size/2) {
+			if(contBlack>matrix_size/2 || contWhite>matrix_size/2) 
 				return false;
-			}
 		}
 		return true;
 	}
@@ -616,151 +540,72 @@ public class GameManager {
 			int contWhite=0;
 			for(int j=0; j<matrix_size; j++) {
 				if(matrix[j][i]!=null) {
-					if(matrix[j][i]==true) {
-						contBlack++;
-					}
-					if(matrix[j][i]==false) {
+					if(matrix[j][i]==true) 
+						contBlack++;					
+					if(matrix[j][i]==false) 
 						contWhite++;
-					}
 				}
 			}
-			if(contBlack>matrix_size/2 || contWhite>matrix_size/2) {
+			if(contBlack>matrix_size/2 || contWhite>matrix_size/2) 
 				return false;
-			}
 		}
 		return true;
 	}
 
 	public boolean checkRowsThreeInARow() {
-		for(int i=0; i<matrix_size; i++) {
-			for(int j=1; j<matrix_size-1; j++) {
-				if(matrix[i][j]!=null) {
-					if(matrix[i][j]==matrix[i][j-1] && matrix[i][j]==matrix[i][j+1]) {
+		for(int i=0; i<matrix_size; i++) 
+			for(int j=1; j<matrix_size-1; j++) 
+				if(matrix[i][j]!=null) 
+					if(matrix[i][j]==matrix[i][j-1] && matrix[i][j]==matrix[i][j+1]) 
 						return false;
-					}
-				}
-			}
-		}
 		return true;
 	}
 	
 	public boolean checkColumnsThreeInARow() {
-		for(int j=0; j<matrix_size; j++) {
-			for(int i=1; i<matrix_size-1; i++) {
-				if(matrix[i][j]!=null) {
-					if(matrix[i][j]==matrix[i-1][j] && matrix[i][j]==matrix[i+1][j]) {
+		for(int j=0; j<matrix_size; j++) 
+			for(int i=1; i<matrix_size-1; i++) 
+				if(matrix[i][j]!=null) 
+					if(matrix[i][j]==matrix[i-1][j] && matrix[i][j]==matrix[i+1][j]) 
 						return false;
-					}
-				}
-			}
-		}
 		return true;
 	}
 	
-	public void generateNewPuzzle() {			
+	public void generateNewPuzzleOffline() {			
 		
-		generateMatrix();
-		generateInput();
-		removeCell();
-		System.out.println("--------------SOLUZIONE FINALE-----------------------");
-		System.out.println("OURSOLUTION:");
-		for (int i = 0; i < matrix_size; i++) {
-			for (int j = 0; j < matrix_size; j++) {
-				System.out.print(ourSolution[i][j]+" ");
-			}
-			System.out.println();
-		}				
-		loading.setVisible(false);
-		loading.setDisable(false);
-	}
-
-	private void removeCell() {
 		Random random= new Random();
-		int solutions = 1;
-		while (solutions == 1) {
-			for (int i = 0; i < matrix_size; ++i) {
-				for (int j = 0; j < matrix_size; j++)
-					ourSolution[i][j]=ourMatrix[i][j];
-			}
-			ourMatrix[random.nextInt(matrix_size - 1)][random.nextInt(matrix_size - 1)] = null;
-			String param = "" + matrix_size + "\n";
-			for (int i = 0; i < matrix_size; i++) {
-				for (int j = 0; j < matrix_size; j++) {
-					param += (ourMatrix[i][j] == null ? 'N' : ourMatrix[i][j] ? '1' : '0') + " ";
-				}
-				param += "\n";
-			}
-			Process process;
-			try {
-
-				String globalPath = GameManager.class.getResource("/resources").toString().substring(6);
-				File myObj = new File(globalPath + "/in");
-				myObj.createNewFile();
-
-				FileWriter myWriter = new FileWriter(myObj);
-				myWriter.write(param);
-				myWriter.close();
-				process = Runtime.getRuntime().exec("python " + globalPath + "/binairoCountSolutions.py");
-				InputStream is = process.getInputStream();
-				InputStreamReader isr = new InputStreamReader(is);
-				BufferedReader br = new BufferedReader(isr);
-
-				System.out.println("output cmd2:");
-				//			String line;
-				//			while ((line = br.readLine()) != null) {
-				//				System.out.println(line);
-				//			}
-
-				myObj = new File(globalPath + "/outSolutions");
-				process.waitFor();
-				Scanner myReader = new Scanner(myObj);
-				solutions = Integer.valueOf(myReader.nextLine());
-				myReader.close();
-
-				System.out.println(solutions);
-
-			} catch (Exception e) {
-				System.out.println(e);
-			} 
+		ourMatrix=new Boolean[matrix_size][matrix_size];
+		Boolean startValue=true;
+		for(int i=0;i<matrix_size;i++) {
+			ourMatrix[i][random.nextInt(matrix_size)]=startValue;
+			startValue= (!startValue);
 		}
 		
+		System.out.println("First Matrix:");
+		printMatrix(ourMatrix);
 		
+		generateSolutionFromMatrixOffline();
+		System.out.println("Solution:");
+		printMatrix(ourMatrix);
 		
-	}
+		generatePuzzleFromSolution();	
+		System.out.println("Generated Puzzle:");
+		printMatrix(ourSolution);		
+	}	
 
-	private void generateInput() {
-		ourSolution=new Boolean[matrix_size][matrix_size];
-		String param = "" + matrix_size + "\n";
-		for (int i = 0; i < matrix_size; i++) {
-			for (int j = 0; j < matrix_size; j++) {
-				param += (ourMatrix[i][j] == null ? 'N' : ourMatrix[i][j] ? '1' : '0') + " ";
-			}
-			param += "\n";
-		}
-
-		System.out.println(param);
-		Process process;
+	private void generateSolutionFromMatrixOffline() {
+		ourSolution=new Boolean[matrix_size][matrix_size];		
+		String param = generateMatrixInputForMiniZinc(ourMatrix);
 		
 		try {
 
-			String globalPath = GameManager.class.getResource("/resources").toString().substring(6);
 			File myObj = new File(globalPath+"/in");
 			myObj.createNewFile();
 
 			FileWriter myWriter = new FileWriter(myObj);
 			myWriter.write(param);
 			myWriter.close();
-			process = Runtime.getRuntime().exec("python " + globalPath+"/binairo.py");
-			InputStream is = process.getInputStream();
-			InputStreamReader isr = new InputStreamReader(is);
-			BufferedReader br = new BufferedReader(isr);
-			
-
-			System.out.println("output cmd2:");
-			String line;
-			while ((line = br.readLine()) != null) {
-				System.out.println(line);
-			}
+			Process process = Runtime.getRuntime().exec("python " + globalPath+"/binairo.py");
+			process.waitFor();
 
 			myObj = new File(globalPath+"/out");
 			Scanner myReader = new Scanner(myObj);
@@ -768,7 +613,6 @@ public class GameManager {
 			int row = 0;
 			while (myReader.hasNextLine()) {
 				String data = myReader.nextLine();
-				System.out.println(data);
 				String[] splitted = data.split("\\s+");
 
 				for (int i = 0; i < matrix_size; i++) {
@@ -780,35 +624,113 @@ public class GameManager {
 				}
 				row++;
 			}
-			
-			for (int i = 0; i < matrix_size; ++i) {
-				for (int j = 0; j < matrix_size; j++)
-					ourSolution[i][j]=ourMatrix[i][j];
-			}
+//			
+//			for (int i = 0; i < matrix_size; ++i) {
+//				for (int j = 0; j < matrix_size; j++)
+//					ourSolution[i][j]=ourMatrix[i][j];
+//			}
 
 			myReader.close();
 		}
 		catch(Exception e) {
 			System.out.println(e);
 		}
-		
 	}
 
-	private void generateMatrix() {
+	private void generatePuzzleFromSolution() {
 		Random random= new Random();
-		ourMatrix=new Boolean[matrix_size][matrix_size];
-		Boolean startValue=true;
-		for(int i=0;i<matrix_size;i++) {
-			ourMatrix[i][random.nextInt(matrix_size-1)]=startValue;
-			startValue= (!startValue);
-		}
-		for(int i=0;i<matrix_size;i++) {
-			for(int j=0; j<matrix_size; j++) {
-				System.out.println(ourMatrix[i][j]);
+		System.out.print("generating");
+		
+		int solutions = 1;
+		while (solutions == 1) {
+			
+			for (int i = 0; i < matrix_size; ++i) 
+				for (int j = 0; j < matrix_size; j++)
+					ourSolution[i][j]=ourMatrix[i][j];
+			
+			// CANCELLO 5 CERCHI
+			for(int c=0;c<5;) {
+				int i = random.nextInt(matrix_size);
+				int j = random.nextInt(matrix_size);
+				if(ourMatrix[i][j] != null) {
+					ourMatrix[i][j] = null;
+					c++;
+				}
 			}
+			
+			String param = generateMatrixInputForMiniZinc(ourMatrix);
+			Process process;
+			try {
+
+				File myObj = new File(globalPath + "/in");
+				myObj.createNewFile();
+
+				FileWriter myWriter = new FileWriter(myObj);
+				myWriter.write(param);
+				myWriter.close();
+				
+				process = Runtime.getRuntime().exec("python " + globalPath + "/binairoCountSolutions.py");
+				process.waitFor();
+
+				myObj = new File(globalPath + "/outSolutions");
+				Scanner myReader = new Scanner(myObj);
+				solutions = Integer.valueOf(myReader.nextLine());
+				myReader.close();
+
+				System.out.print(".");
+
+			} catch (Exception e) {
+				System.out.println(e);
+			} 
 		}
-		
-		
+		System.out.println();
 	}
 
+	
+	private String generateMatrixInputForMiniZinc(Boolean[][] m) {
+		String param = "" + matrix_size + "\n";
+		for (int i = 0; i < matrix_size; i++) {
+			for (int j = 0; j < matrix_size; j++) 
+				param += (m[i][j] == null ? 'N' : m[i][j] ? '1' : '0') + " ";
+			param += "\n";
+		}
+		return param;
+	}
+
+    class HandleOfflineService extends Service<Void> {
+
+        @Override
+        protected Task<Void> createTask() {
+            return new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {                	
+                	handleOfflineButton();
+                    return null;
+                }
+            };
+        }
+    }
+    
+
+    class HandleStartService extends Service<Void> {
+
+        @Override
+        protected Task<Void> createTask() {
+            return new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {                	
+                	handleStartButton();
+                    return null;
+                }
+            };
+        }
+    }
+
+    public Main getMain() {
+		return main;
+	}
+
+	public void setMain(Main main) {
+		this.main = main;
+	}
 }
