@@ -72,7 +72,6 @@ public class GameManager {
     
 	@FXML
     void initialize() {
-		generateNewPuzzle();
 		size.setItems(dim);
 		size.setValue(6);
 		
@@ -556,15 +555,24 @@ public class GameManager {
 		generateMatrix();
 		generateInput();
 		removeCell();
-		
+		System.out.println("--------------SOLUZIONE FINALE-----------------------");
+		System.out.println("OURSOLUTION:");
+		for (int i = 0; i < matrix_size; i++) {
+			for (int j = 0; j < matrix_size; j++) {
+				System.out.print(ourSolution[i][j]+" ");
+			}
+			System.out.println();
+		}
 	}
 
 	private void removeCell() {
 		Random random= new Random();
 		int solutions = 1;
-		
-		
 		while (solutions == 1) {
+			for (int i = 0; i < matrix_size; ++i) {
+				for (int j = 0; j < matrix_size; j++)
+					ourSolution[i][j]=ourMatrix[i][j];
+			}
 			ourMatrix[random.nextInt(matrix_size - 1)][random.nextInt(matrix_size - 1)] = null;
 			String param = "" + matrix_size + "\n";
 			for (int i = 0; i < matrix_size; i++) {
@@ -573,7 +581,6 @@ public class GameManager {
 				}
 				param += "\n";
 			}
-//			System.out.println(param);
 			Process process;
 			try {
 
@@ -596,6 +603,7 @@ public class GameManager {
 				//			}
 
 				myObj = new File(globalPath + "/outSolutions");
+				process.waitFor();
 				Scanner myReader = new Scanner(myObj);
 				solutions = Integer.valueOf(myReader.nextLine());
 				myReader.close();
@@ -612,6 +620,7 @@ public class GameManager {
 	}
 
 	private void generateInput() {
+		ourSolution=new Boolean[matrix_size][matrix_size];
 		String param = "" + matrix_size + "\n";
 		for (int i = 0; i < matrix_size; i++) {
 			for (int j = 0; j < matrix_size; j++) {
@@ -662,13 +671,11 @@ public class GameManager {
 				}
 				row++;
 			}
-
+			
 			for (int i = 0; i < matrix_size; ++i) {
 				for (int j = 0; j < matrix_size; j++)
-					System.out.print(ourMatrix[i][j]);
-				System.out.println();
+					ourSolution[i][j]=ourMatrix[i][j];
 			}
-			ourSolution=ourMatrix;
 
 			myReader.close();
 		}
