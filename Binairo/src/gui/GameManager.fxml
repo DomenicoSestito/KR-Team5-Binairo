@@ -49,5 +49,14 @@
             <Label fx:id="error2" layoutX="33.0" layoutY="808.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
          </children>
       </Pane>
+      <Pane fx:id="loading" prefHeight="892.0" prefWidth="1223.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <ImageView fitHeight="257.0" fitWidth="189.0" layoutX="735.0" layoutY="393.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../img/load.gif" />
+               </image>
+            </ImageView>
+         </children>
+      </Pane>
    </children>
 </AnchorPane>

@@ -28,8 +28,10 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.paint.Color;
@@ -58,6 +60,8 @@ public class GameManager {
     private Button hint;
 	@FXML
     private Button done;
+	@FXML
+	private Pane loading;
     @FXML
     private GridPane gridPane = new GridPane();
 	private int matrix_size=6;
@@ -78,6 +82,9 @@ public class GameManager {
     void initialize() {
 		size.setItems(dim);
 		size.setValue(6);
+		
+		loading.setVisible(false);
+		loading.setDisable(true);
 		
 		restart.setDisable(true);
 		
@@ -185,6 +192,16 @@ public class GameManager {
 		offline.setOnMouseClicked(new EventHandler<Event>() {
 			@Override
 			public void handle(Event event) {
+				new Thread(new Runnable() {
+					
+					@Override
+					public void run() {
+						loading.setDisable(false);
+						loading.setVisible(true);
+					}
+					
+				}).start();
+				
     			restart.setDisable(false);
     			generateNewPuzzle();
     			result.setText("");    			
@@ -640,7 +657,8 @@ public class GameManager {
 		return true;
 	}
 	
-	public void generateNewPuzzle() {
+	public void generateNewPuzzle() {			
+		
 		generateMatrix();
 		generateInput();
 		removeCell();
@@ -651,7 +669,9 @@ public class GameManager {
 				System.out.print(ourSolution[i][j]+" ");
 			}
 			System.out.println();
-		}
+		}				
+		loading.setVisible(false);
+		loading.setDisable(false);
 	}
 
 	private void removeCell() {
