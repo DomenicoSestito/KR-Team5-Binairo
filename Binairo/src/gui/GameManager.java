@@ -41,7 +41,11 @@ public class GameManager {
 	@FXML
 	private Label result;
 	@FXML
+	private Label error;
+	@FXML
     private Button start;
+	@FXML
+    private Button restart;
 	@FXML
     private Button exit;
 	@FXML
@@ -53,9 +57,10 @@ public class GameManager {
 	private int matrix_size=6;
 	    
     private Button[][] circles;
+	private Boolean[][] initial_given;
 	private Boolean[][] given;
 	private Boolean[][] matrix;
-	private ArrayList<Boolean[][]> solutions = new ArrayList<Boolean[][]>();
+	private Boolean[][] solution;
 	
 	ObservableList<Integer> dim = FXCollections.observableArrayList(6,8,10,14,20);
 	
@@ -67,6 +72,8 @@ public class GameManager {
 		size.setItems(dim);
 		size.setValue(6);
 		
+		restart.setDisable(true);
+		
 		start.setOnMouseClicked(new EventHandler<Event>() {
 			
 			int problem_size = 0;		
@@ -74,6 +81,10 @@ public class GameManager {
 			@Override
     		public void handle(Event event) {
     			matrix_size = (int) size.getValue();
+    			
+    			restart.setDisable(false);
+    			
+    			result.setText("");		
     			
     			gridPane.getChildren().clear();
 
@@ -102,7 +113,9 @@ public class GameManager {
     			
     			circles = new Button[matrix_size][matrix_size]; 
     			given = new Boolean[matrix_size][matrix_size];
+    			initial_given = new Boolean[matrix_size][matrix_size];
     			matrix = new Boolean[matrix_size][matrix_size];
+    			solution = new Boolean[matrix_size][matrix_size];
     			
     			initMatrix(getString(problem_size));
     			
@@ -132,6 +145,7 @@ public class GameManager {
 				    				matrix[innerJ][innerI]=null;				    			
 				    			}
 				    			checkTheMove();
+				    			result.setText("");
 				    		}
 				    	});
 					}
@@ -169,6 +183,7 @@ public class GameManager {
     	hint.setOnMouseClicked(new EventHandler<Event>() {
     		@Override
     		public void handle(Event event) {
+    			result.setText("");
     			if(matrix!=null)
     				getHint();
     		};
@@ -177,9 +192,38 @@ public class GameManager {
     	done.setOnMouseClicked(new EventHandler<Event>() {
     		@Override
     		public void handle(Event event) {
+    			result.setText("");
     			if(matrix!=null)
     				checkCorrectness();
     		};
+		});
+    	
+    	restart.setOnMouseClicked(new EventHandler<Event>() {
+    		@Override
+    		public void handle(Event event) {
+    			for(int i=0;i<matrix_size; i++) {
+    				for (int j = 0; j < matrix_size; j++) {
+    					given[i][j]=initial_given[i][j];
+    					matrix[i][j]=initial_given[i][j];
+		    			if (initial_given[i][j]==null) {
+							circles[j][i].setText("");
+							circles[j][i].setDisable(false);
+						}
+		    			if(matrix[i][j]==null){
+		    				circles[j][i].setStyle("-fx-background-color: #b0b0b0");	
+		    			}
+		    			else if(matrix[i][j]){
+		    				circles[j][i].setStyle("-fx-background-color: #000000");	
+		    			}
+		    			else if(!matrix[i][j]){
+		    				circles[j][i].setStyle("-fx-background-color: #ffffff");	
+		    			}
+    						
+    				}
+    				
+    			}  
+    			result.setText("");			
+    		}
 		});
     }
 	
@@ -227,8 +271,10 @@ public class GameManager {
 			}catch(Exception e) {}
 			
 			int skip = 1;
-			if(value != null)
+			if(value != null) {
 				given[i][j] = matrix[i][j] = value == 1;
+				initial_given[i][j] = given[i][j];
+			}
 			else 
 				skip = (c - 'a'+1);
 			
@@ -287,11 +333,6 @@ public class GameManager {
     } 
 	
 	public void getHint() {
-		
-		//getSolutions();
-		 
-		Boolean[][] solution = solutions.get(0);
-
 		int hint=0;
 		for(int i=0;i<matrix_size;i++) {
 			for (int j = 0; j < matrix_size; j++) {
@@ -330,16 +371,13 @@ public class GameManager {
 		
 		if (complete) {
 			//getSolutions();
-			for (Boolean[][] solution : solutions) {
-				nEqual = 0;
-				for (int i = 0; i < matrix_size; i++)
-					for (int j = 0; j < matrix_size; j++)
-						if (matrix[i][j] == solution[i][j])
-							nEqual++;
-				if (nEqual == total) {
-					correct = true;
-					break;
-				}
+			nEqual = 0;
+			for (int i = 0; i < matrix_size; i++)
+				for (int j = 0; j < matrix_size; j++)
+					if (matrix[i][j] == solution[i][j])
+						nEqual++;
+			if (nEqual == total) {
+				correct = true;
 			}
 			if (correct) {
 				result.setText("CONGRATULATIONS! THE PUZZLE IS SOLVED");
@@ -397,8 +435,6 @@ public class GameManager {
 
 			myObj = new File(globalPath+"/out");
 			Scanner myReader = new Scanner(myObj);
-
-			Boolean[][] solution = new Boolean[matrix_size][matrix_size];
 			
 			int row = 0;
 			while (myReader.hasNextLine()) {
@@ -421,7 +457,6 @@ public class GameManager {
 					System.out.print(solution[i][j]);
 				System.out.println();
 			}
-			solutions.add(solution);
 
 			myReader.close();
 
@@ -431,11 +466,17 @@ public class GameManager {
 		}
 		
 	}
+	
 	public void checkTheMove() {
+		error.setTextFill(Color.web("#ff0000"));
+		error.setAlignment(Pos.CENTER);
 		if(!checkRowsThreeInARow() || !checkColumnsThreeInARow())
-			System.out.println("3 DI FILA");
-		if(!checkTheNumberInRows() || !checkTheNumberInColumns()) {
-			System.out.println("Numero errato");
+			error.setText("3 DI FILA");
+		else if(!checkTheNumberInRows() || !checkTheNumberInColumns()) {
+			error.setText("NUMERO ERRATO");
+		}
+		else {
+			error.setText("");
 		}
 	}
 
