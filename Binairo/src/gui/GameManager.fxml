@@ -45,7 +45,7 @@
             <Label fx:id="result" layoutX="33.0" layoutY="875.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
             <Button fx:id="exit" layoutX="115.0" layoutY="657.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Exit" />
             <Label fx:id="error1" layoutX="33.0" layoutY="740.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
-            <Button fx:id="offline" layoutX="188.0" layoutY="269.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Offline (6x6)" />
+            <Button fx:id="offline" layoutX="188.0" layoutY="269.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Offline" />
             <Label fx:id="error2" layoutX="33.0" layoutY="808.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
          </children>
       </Pane>

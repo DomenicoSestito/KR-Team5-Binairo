@@ -217,12 +217,14 @@ public class GameManager {
 	
 	private void handleOfflineButton() {
 		System.out.println("Pressed Offline Button");
+		
+		matrix_size = (int) size.getValue();
 				
 		clearGrid();
-
-		generateNewPuzzleOffline();	
 		
 		initNewMatrixes();
+
+		generateNewPuzzleOffline();	
 		
 		for (int i = 0; i < matrix_size; i++) {
 			for (int j = 0; j < matrix_size; j++) {
@@ -231,7 +233,7 @@ public class GameManager {
 				initial_given[i][j] = given[i][j];					
 			}
 		}
-		getSolutionFromMiniZinc();
+		// getSolutionFromMiniZinc();
 		
 		initCircleMatrix();
 	}
@@ -618,13 +620,15 @@ public class GameManager {
 				for (int i = 0; i < matrix_size; i++) {
 					if (splitted[i].equals("1")) {
 						ourMatrix[row][i] = true;
+						solution[row][i] = true;
 					} else {
 						ourMatrix[row][i] = false;
+						solution[row][i] = false;
 					}
 				}
 				row++;
 			}
-//			
+			
 //			for (int i = 0; i < matrix_size; ++i) {
 //				for (int j = 0; j < matrix_size; j++)
 //					ourSolution[i][j]=ourMatrix[i][j];
@@ -649,14 +653,14 @@ public class GameManager {
 					ourSolution[i][j]=ourMatrix[i][j];
 			
 			// CANCELLO 5 CERCHI
-			for(int c=0;c<5;) {
+			// for(int c=0;c<5;) {
 				int i = random.nextInt(matrix_size);
 				int j = random.nextInt(matrix_size);
 				if(ourMatrix[i][j] != null) {
 					ourMatrix[i][j] = null;
-					c++;
+					// c++;
 				}
-			}
+			// }
 			
 			String param = generateMatrixInputForMiniZinc(ourMatrix);
 			Process process;
