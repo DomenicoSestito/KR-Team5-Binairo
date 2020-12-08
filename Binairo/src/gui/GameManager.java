@@ -652,15 +652,15 @@ public class GameManager {
 				for (int j = 0; j < matrix_size; j++)
 					ourSolution[i][j]=ourMatrix[i][j];
 			
-			// CANCELLO 5 CERCHI
-			// for(int c=0;c<5;) {
+			// CANCELLO ALMENO 1 CERCHIO
+			for(int c=0;c<1;) {
 				int i = random.nextInt(matrix_size);
 				int j = random.nextInt(matrix_size);
 				if(ourMatrix[i][j] != null) {
 					ourMatrix[i][j] = null;
-					// c++;
+					c++;
 				}
-			// }
+			}
 			
 			String param = generateMatrixInputForMiniZinc(ourMatrix);
 			Process process;
