@@ -8,9 +8,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -70,7 +68,7 @@ public class GameManager {
 		public boolean equals(Object o)
 		{
 			if (! (o instanceof Pair)) { return false; }
-			Pair p = (Pair)o;
+			Pair<?> p = (Pair<?>)o;
 			return left.equals(p.left) && right.equals(p.right);
 		} 
 
@@ -147,6 +145,7 @@ public class GameManager {
     		public void handle(Event event) {				
 				if(!handleStartService.isRunning()) {
 					loading.setVisible(true);
+					setDisableAllButtons(true);
 					handleStartService.start();
 				}
     		}			
@@ -154,6 +153,7 @@ public class GameManager {
 		
 		handleStartService.setOnSucceeded(e ->{
 			loading.setVisible(false);
+			setDisableAllButtons(false);
 			handleStartService.reset();
 		});
 		
@@ -162,14 +162,16 @@ public class GameManager {
 			@Override
 			public void handle(Event event) {				
 				if(!handleOfflineService.isRunning()) {
-					loading.setVisible(true);				
+					loading.setVisible(true);
+					setDisableAllButtons(true);			
 					handleOfflineService.start();
 				}
 			}
 		});
 		
 		handleOfflineService.setOnSucceeded(e ->{			
-			loading.setVisible(false);			
+			loading.setVisible(false);
+			setDisableAllButtons(false);		
 			handleOfflineService.reset();
 		});
 		
@@ -193,13 +195,15 @@ public class GameManager {
     		@Override
     		public void handle(Event event) {
     			result.setText("");    
-    			checkCorrectness();
+    			checkWin();
     		};
 		});
     	
     	restart.setOnMouseClicked(new EventHandler<Event>() {
     		@Override
     		public void handle(Event event) {
+    			setDisableButtonsForGame(false);
+    			
     			editables.clear();
     			for(int i=0;i<matrix_size; i++) {
     				for (int j = 0; j < matrix_size; j++) {
@@ -225,15 +229,27 @@ public class GameManager {
     }
 	
 	private void clearGrid() {
-		Platform.runLater( () -> {
-			restart.setDisable(false);
-			hint.setDisable(false);
-			done.setDisable(false);
-			
+		Platform.runLater( () -> {			
 			clearText();
 			gridPane.getChildren().clear();
 			gridPane.setGridLinesVisible(false);
 			
+		});
+	}
+	
+	public void setDisableButtonsForGame(boolean disable) {
+		Platform.runLater( () -> {
+			hint.setDisable(disable);
+			done.setDisable(disable);
+		});
+	}
+
+	public void setDisableAllButtons(boolean disable) {
+		setDisableButtonsForGame(disable);
+		Platform.runLater( () -> {
+			restart.setDisable(disable);
+			start.setDisable(disable);
+			offline.setDisable(disable);
 		});
 	}
 	
@@ -288,6 +304,8 @@ public class GameManager {
 			}
 		}
 		// getSolutionFromMiniZinc();
+
+		initEditables();
 		
 		initCircleMatrix();
 	}
@@ -403,6 +421,15 @@ public class GameManager {
 		System.out.println("Puzzle:");
 		printMatrix(initial_given);
 		
+		initEditables();
+		getSolutionFromMiniZinc();
+	}
+	
+	public boolean isEditable(int i, int j) {
+		return given[i][j] == null;
+	}
+	
+	public void initEditables() {
 		for(int m = 0; m<matrix_size; m++) {
 			for(int n = 0; n<matrix_size; n++) {
 				if(given[m][n]==null) {
@@ -410,11 +437,6 @@ public class GameManager {
 				}
 			}
 		}
-		getSolutionFromMiniZinc();
-	}
-	
-	public boolean isEditable(int i, int j) {
-		return given[i][j] == null;
 	}
 	
 	public void printMatrix(Boolean m[][]) {
@@ -450,13 +472,15 @@ public class GameManager {
     } 	
 
 	public void getHint() {
-		if(isMatrixFilled())
+		if(checkSolution()) {
+			win();
 			return;
+		} 
 		
 		Random random= new Random();
 	
 		int i = random.nextInt(editables.size());
-		System.out.println(editables.size());
+//		System.out.println(editables.size());
 		Pair<Integer> pair = editables.get(i);
 		matrix[pair.getL()][pair.getR()] = solution[pair.getL()][pair.getR()];
 		given[pair.getL()][pair.getR()] = solution[pair.getL()][pair.getR()];
@@ -489,36 +513,35 @@ public class GameManager {
 		return true;
 	}
 	
-	public void checkCorrectness() {
-		boolean correct = false;
-		int total = matrix_size*matrix_size;
-		int nEqual = 0;
-		
-		if (isMatrixFilled()) {
-			//getSolutions();
-			nEqual = 0;
-			for (int i = 0; i < matrix_size; i++)
-				for (int j = 0; j < matrix_size; j++)
-					if (matrix[i][j] == solution[i][j])
-						nEqual++;
-			if (nEqual == total) {
-				correct = true;
-			}
-			if (correct) {
-				result.setText("CONGRATULATIONS!\nTHE PUZZLE IS SOLVED");
-				result.setTextFill(Color.web("#008000"));
-				result.setAlignment(Pos.CENTER);
-			} else {
-				result.setText("THERE ARE MISTAKES IN THE PUZZLE");
-				result.setTextFill(Color.web("#ff0000"));
-				result.setAlignment(Pos.CENTER);
-			} 
-		}
+	public boolean checkSolution() {
+		for (int i = 0; i < matrix_size; i++)
+			for (int j = 0; j < matrix_size; j++)
+				if (matrix[i][j] != solution[i][j])
+					return false;
+		return true;
+	}
+	
+	public void win() {
+		result.setText("CONGRATULATIONS!\nTHE PUZZLE IS SOLVED");
+		result.setTextFill(Color.web("#008000"));
+		result.setAlignment(Pos.CENTER);
+		setDisableButtonsForGame(true);
+	}
+	
+	public void checkWin() {
+		if(checkSolution()) {
+			win();
+		} 
+		else if(isMatrixFilled()){
+			result.setText("THERE ARE MISTAKES IN THE PUZZLE");
+			result.setTextFill(Color.web("#ff0000"));
+			result.setAlignment(Pos.CENTER);
+		} 
 		else {
 			result.setText("THE PUZZLE IS NOT COMPLETED");
 			result.setTextFill(Color.web("#ff0000"));
 			result.setAlignment(Pos.CENTER);
-		}		
+		}
 	}
 	
 	public void getSolutionFromMiniZinc() {
@@ -591,16 +614,16 @@ public class GameManager {
 	// Verifichiamo che il valore della cella fillata sia corretta o meno
 	private void checkMoveWithSolution(Integer innerI, Integer innerJ) {
 		if(editables.contains(new Pair<Integer>(innerI,innerJ))) {
-			System.out.println("contiene");
+//			System.out.println("contiene");
 			if(solution[innerI][innerJ]==matrix[innerI][innerJ]){
 				editables.remove(new Pair<Integer>(innerI,innerJ));
 			}
 		}
 		else {
-			System.out.println("non contiene");
+//			System.out.println("non contiene");
 			editables.add(new Pair<Integer>(innerI,innerJ));
 		}
-		System.out.println(editables.size());
+//		System.out.println(editables.size());
 	}
 
 	private boolean checkTheNumberInRows() {
