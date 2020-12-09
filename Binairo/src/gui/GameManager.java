@@ -107,13 +107,13 @@ public class GameManager {
     private GridPane gridPane = new GridPane();
 	private int matrix_size=6;
 	    
-    private Button[][] circles;
-	private Boolean[][] initial_given;
+    private Button[][] circles; //ciò che viene cliccato sulla matrice sull'interfaccia
+	private Boolean[][] initial_given; //matrice con i valori in caso vogliamo fare restart sulla partita
 	private Boolean[][] given;
-	private Boolean[][] matrix;
-	private Boolean[][] solution;
-	private Boolean[][] ourMatrix;
-	private Boolean[][] ourSolution;
+	private Boolean[][] matrix; //matrice sulla quale modifichiamo i valori
+	private Boolean[][] solution; //matrice con la soluzione di minizinc
+	private Boolean[][] ourMatrix; //matrice che viene generata casuale per l'offline e sul quale si cerca l'istanza
+	private Boolean[][] ourSolution; //matrice che rappresenta l'istanza che ha solo una soluzione
 	
 	private List<Pair<Integer>> editables = new ArrayList<Pair<Integer>>();
 
@@ -130,6 +130,7 @@ public class GameManager {
 	
     public GameManager() {}
     
+    //Eventi sui tasti
 	@FXML
     void initialize() {
 		size.setItems(dim);
@@ -228,6 +229,7 @@ public class GameManager {
 		});
     }
 	
+	//Pulisce la matrice dove appaiono cerchi e griglia
 	private void clearGrid() {
 		Platform.runLater( () -> {			
 			clearText();
@@ -237,6 +239,7 @@ public class GameManager {
 		});
 	}
 	
+	//Disabilita i tasti done e hint (es. dopo una vittoria)
 	public void setDisableButtonsForGame(boolean disable) {
 		Platform.runLater( () -> {
 			hint.setDisable(disable);
@@ -244,6 +247,7 @@ public class GameManager {
 		});
 	}
 
+	//Nel momento di attesa della creazione del livello (sia new che offline) non è possibile premere nessun tasto
 	public void setDisableAllButtons(boolean disable) {
 		setDisableButtonsForGame(disable);
 		Platform.runLater( () -> {
@@ -253,6 +257,7 @@ public class GameManager {
 		});
 	}
 	
+	//Cancella i messaggi sull'interfaccia (es. il messaggio di vittoria dopo aver premuto restart/new)
 	private void clearText() {
 		Platform.runLater( () -> {
 			result.setText("");    			
@@ -261,6 +266,7 @@ public class GameManager {
 		});
 	}
 	
+	//Inizializza le istanze delle matrici
 	private void initNewMatrixes() {
 		circles		 	= new Button [matrix_size][matrix_size]; 
 		given 			= new Boolean[matrix_size][matrix_size];
@@ -270,7 +276,7 @@ public class GameManager {
 		editables.clear();
 	}
 	
-	
+	//Eventi che vengono chiamati quando si preme "NEW" (online mode)
 	private void handleStartButton() {
 		System.out.println("Pressed Start Button");
 		
@@ -285,6 +291,7 @@ public class GameManager {
 		initCircleMatrix();
 	}
 	
+	//Eventi che vengono chiamati quando si preme "OFFLINE" (offline mode)	
 	private void handleOfflineButton() {
 		System.out.println("Pressed Offline Button");
 		
@@ -310,11 +317,20 @@ public class GameManager {
 		initCircleMatrix();
 	}
 	
+	/*
+	 * Inizialliza la matrice vuota con bottoni per cliccare su di loro e poter cambiare il colore
+	 * Click su cella vuota -> crea pallino nero(TRUE)
+	 * Click su cella nera -> crea pallino bianco(FALSE)
+	 * Click su cella bianca -> svuota la cella(NULL)
+	 * Dopo l'interfaccia viene pulita da eventuali messaggi presenti
+	 * Infine si controlla se la mossa fatta sulla cella può generare errore (3 cerchi di fila oppure troppi cerchi di un certo colore presenti)
+	 * e se la cella corrisponde ad un'errore rispetto alla soluzione oppure no
+	 */
 	private void initCircleMatrix() {
 		for (int i = 0; i < matrix_size; i++) {
 			for (int j = 0; j < matrix_size; j++) {
-    			final Integer innerI = new Integer(i);
-    			final Integer innerJ = new Integer(j);
+    			final Integer innerI = Integer.valueOf(i);
+    			final Integer innerJ = Integer.valueOf(j);
 				circles[i][j] = new Button();
 				circles[i][j].setShape(new Circle(1.5));
 				circles[i][j].setStyle(colorNull);
@@ -365,8 +381,7 @@ public class GameManager {
 		});
 	}
 	
-	
-	
+	//Fissa un cerchio(non sostituibile) se diverso da null (quindi se nero(TRUE) o bianco(FALSE))
 	public void setFixedCircles(int i, int j) {
 		if(!isEditable(j,i)) {
 			circles[i][j].setText(".");
@@ -379,7 +394,10 @@ public class GameManager {
 		}	
 	}
 		
-	
+	/*
+	 * Scarica dal sito l'istanza a seconda della size scelta e viene parserizzata per assegnare alla matrice
+	 * il valore true o false nella rispettiva cella
+	 */
 	public void initMatrixFromWebSite() {
 		int problem_size = 0;
 		switch (matrix_size) {
@@ -395,12 +413,12 @@ public class GameManager {
         matcher.find();
         String s = matcher.group(1).toString();  
         
-		int i=0,j=0;
+		int i=0, j=0;
 		for(char c : s.toCharArray()) {			
 			Integer value = null;
 			try {
 				value = Integer.parseInt(""+c);
-			}catch(Exception e) {}
+			} catch(Exception e) {}
 			
 			int skip = 1;
 			if(value != null) {
@@ -410,10 +428,10 @@ public class GameManager {
 			else {
 				skip = (c - 'a'+1);
 			}
-			for(int k=0;k<skip;++k) {
+			for(int k=0; k < skip; ++k) {
 				j++;
-				if(j==matrix_size) {
-					j=0;
+				if(j == matrix_size) {
+					j = 0;
 					i++;
 				}
 			}
@@ -425,10 +443,12 @@ public class GameManager {
 		getSolutionFromMiniZinc();
 	}
 	
+	//La funzione che chiama questa si assicura che la cella sia diversa da null per poterla bloccare
 	public boolean isEditable(int i, int j) {
 		return given[i][j] == null;
 	}
 	
+	//Aggiunge in una lista le cell null al momento sul quale sarà possibile dopo effettuare un evento
 	public void initEditables() {
 		for(int m = 0; m<matrix_size; m++) {
 			for(int n = 0; n<matrix_size; n++) {
@@ -439,6 +459,7 @@ public class GameManager {
 		}
 	}
 	
+	//Stampa su console la matrice che gli viene passata
 	public void printMatrix(Boolean m[][]) {
 		for(int i=0;i<matrix_size;++i) {
 			for (int j = 0; j < matrix_size; j++)
@@ -448,6 +469,7 @@ public class GameManager {
 		System.out.println("-------------------------------");
 	}
 	
+	//Scarica dal sito web passato come parametro l'html
 	public static String downloadWebPage(String webpage) 
     { 
 		String html = "";
@@ -471,11 +493,13 @@ public class GameManager {
         return html;
     } 	
 
+	/*
+	 * Prendiamo dalla lista delle celle che devono essere ancora assegnate una coppia casuale di indici
+	 * che vengono assegnati dalla soluzione alla nostra matrice per poi essere fissati
+	 * Questa coppia di indici viene poi eliminata dalla lista di celle che devono essere ancora assegnate
+	 */
 	public void getHint() {
-		if(checkSolution()) {
-			win();
-			return;
-		} 
+		
 		
 		Random random= new Random();
 	
@@ -503,8 +527,13 @@ public class GameManager {
 //		}
 		
 		checkMove();
+		if(checkSolution()) {
+			win();
+			return;
+		} 
 	}
 	
+	//Controlla che tutte le celle siano riempite
 	private boolean isMatrixFilled() {
 		for(int i=0;i<matrix_size;i++)
 			for (int j = 0; j < matrix_size; j++)
@@ -513,6 +542,7 @@ public class GameManager {
 		return true;
 	}
 	
+	//Controlla la nostra matrice con la soluzione, se una cella della nostra matrice è diversa dalla soluzione ritorna falso
 	public boolean checkSolution() {
 		for (int i = 0; i < matrix_size; i++)
 			for (int j = 0; j < matrix_size; j++)
@@ -521,6 +551,7 @@ public class GameManager {
 		return true;
 	}
 	
+	//Se il puzzle è completato correttamente viene mostrato il messaggio e vengono disattivi i tasti relativi al gioco(done e hint)
 	public void win() {
 		result.setText("CONGRATULATIONS!\nTHE PUZZLE IS SOLVED");
 		result.setTextFill(Color.web("#008000"));
@@ -528,6 +559,12 @@ public class GameManager {
 		setDisableButtonsForGame(true);
 	}
 	
+	/*
+	 * Controlla 3 diverse situazioni
+	 * 1. Se la nostra matrice corrisponde alla soluzione (in caso viene mostrato un messaggio di vittoria)
+	 * 2. Se la matrice è riempita ma non corrisponde alla soluzione
+	 * 3. Se il tasto done viene premuto quando la matrice non è ancora completa 
+	 */
 	public void checkWin() {
 		if(checkSolution()) {
 			win();
@@ -544,6 +581,13 @@ public class GameManager {
 		}
 	}
 	
+	/*
+	 * Questa funzione genera la soluzione attraverso il file python che richiama minizinc
+	 * 1. Viene creato l'input da passare su minizinc e scritto sul file "in" che viene creato
+	 * 2. Dopo viene lanciato il processo python che contiene l'API di minizinc
+	 * 3. Una volta finito il processo viene parserizzato il file "out" creato
+	 * 4. Nella matrice "solution" viene salvato il corrispettivo valore: true (nero) oppure false (bianco)
+	 */
 	public void getSolutionFromMiniZinc() {
 		
 		String param = generateMatrixInputForMiniZinc(matrix);
@@ -594,6 +638,11 @@ public class GameManager {
 		
 	}
 	
+	/*
+	 * Controlla se la mossa sulla matrice è corretta, altrimenti viene scritto il messaggio
+	 * che sono presenti 3 cerchi uguali di fila oppure
+	 * che il numero dei cerchi di un certo colore supera il massimo che si possono posizionare
+	 */
 	public void checkMove() {
 		Platform.runLater(()->{
 			error1.setTextFill(Color.web("#ff0000"));
@@ -617,6 +666,7 @@ public class GameManager {
 //			System.out.println("contiene");
 			if(solution[innerI][innerJ]==matrix[innerI][innerJ]){
 				editables.remove(new Pair<Integer>(innerI,innerJ));
+				//System.out.println("Questo colore è una soluzione per questa cella");
 			}
 		}
 		else {
@@ -626,6 +676,12 @@ public class GameManager {
 //		System.out.println(editables.size());
 	}
 
+	/*
+	 * Ci assicuriamo che in ogni riga non siano presenti un numero di celle dello stesso colore
+	 * maggiore della metà della dimensione della matrice
+	 * 
+	 * contBlack>matrix_size/2 || contWhite>matrix_size/2
+	 */
 	private boolean checkTheNumberInRows() {
 		for(int i=0; i<matrix_size; i++) {
 			int contBlack=0;
@@ -644,6 +700,12 @@ public class GameManager {
 		return true;
 	}
 
+	/*
+	 * Ci assicuriamo che in ogni colonna non siano presenti un numero di celle dello stesso colore
+	 * maggiore della metà della dimensione della matrice
+	 * 
+	 * contBlack>matrix_size/2 || contWhite>matrix_size/2
+	 */
 	private boolean checkTheNumberInColumns() {
 		for(int i=0; i<matrix_size; i++) {
 			int contBlack=0;
@@ -662,6 +724,10 @@ public class GameManager {
 		return true;
 	}
 
+	/*
+	 * Partendo dalla seconda cella fino alla penultima ci assicuriamo che in una riga la cella non abbia
+	 * una cella dello stesso colore sia nella cella precedente che in quella successiva
+	 */
 	public boolean checkRowsThreeInARow() {
 		for(int i=0; i<matrix_size; i++) 
 			for(int j=1; j<matrix_size-1; j++) 
@@ -671,6 +737,10 @@ public class GameManager {
 		return true;
 	}
 	
+	/*
+	 * Partendo dalla seconda cella fino alla penultima ci assicuriamo che in una colonna la cella non abbia
+	 * una cella dello stesso colore sia nella cella precedente che in quella successiva
+	 */
 	public boolean checkColumnsThreeInARow() {
 		for(int j=0; j<matrix_size; j++) 
 			for(int i=1; i<matrix_size-1; i++) 
@@ -680,6 +750,10 @@ public class GameManager {
 		return true;
 	}
 	
+	/*
+	 * Per ogni riga viene assegnato un valore (true o false alternato) in una colonna casuale
+	 * 
+	 */
 	public void generateNewPuzzleOffline() {			
 		
 		Random random= new Random();
@@ -702,6 +776,13 @@ public class GameManager {
 		printMatrix(ourSolution);
 	}	
 
+	/*
+	 * Questa funzione genera la soluzione attraverso il file python che richiama minizinc
+	 * 1. Viene creato l'input da passare su minizinc e scritto sul file "in" che viene creato
+	 * 2. Dopo viene lanciato il processo python che contiene l'API di minizinc
+	 * 3. Una volta finito il processo viene parserizzato il file "out" creato
+	 * 4. Nelle matrice "solution" e "ourMatrix" vengono salvati il corrispettivo valore: true (nero) oppure false (bianco)
+	 */
 	private void generateSolutionFromMatrixOffline() {
 		ourSolution=new Boolean[matrix_size][matrix_size];		
 		String param = generateMatrixInputForMiniZinc(ourMatrix);
@@ -749,8 +830,18 @@ public class GameManager {
 		}
 	}
 
+	/*
+	 * Generiamo un'istanza che abbia solo una soluzione data una soluzione
+	 * Ad ogni ciclo while viene
+	 * 1. salvata la corrente matrice
+	 * 2. eliminato almeno un cerchio
+	 * 3. viene lanciato il processo di minizinc con un altro script python
+	 * 
+	 * se il numero di soluzione è ancora uguale a 1 continuiamo a ciclare
+	 * se il numero di soluzioni è maggiore di 1 torniamo come istanza la precedente salvata
+	 */
 	private void generatePuzzleFromSolution() {
-		Random random= new Random();
+		Random random = new Random();
 		System.out.print("generating");
 		
 		int solutions = 1;
@@ -761,7 +852,7 @@ public class GameManager {
 					ourSolution[i][j]=ourMatrix[i][j];
 			
 			// CANCELLO ALMENO 1 CERCHIO
-			for(int c=0;c<1;) {
+			for(int c = 0; c < 1;) {
 				int i = random.nextInt(matrix_size);
 				int j = random.nextInt(matrix_size);
 				if(ourMatrix[i][j] != null) {
@@ -798,7 +889,7 @@ public class GameManager {
 		System.out.println();
 	}
 
-	
+	//Genera l'input da passare a minizinc per l'analisi
 	private String generateMatrixInputForMiniZinc(Boolean[][] m) {
 		String param = "" + matrix_size + "\n";
 		for (int i = 0; i < matrix_size; i++) {
@@ -809,6 +900,10 @@ public class GameManager {
 		return param;
 	}
 
+	/*
+	 * Le due classi qua sotto permettono di gestire l'inizializzazione delle matrice
+	 * sia per l'online che per l'offline 
+	 */
     class HandleOfflineService extends Service<Void> {
 
         @Override
