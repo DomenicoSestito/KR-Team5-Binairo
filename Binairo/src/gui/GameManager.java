@@ -7,6 +7,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -32,6 +36,50 @@ import javafx.scene.text.Font;
 import javafx.scene.paint.Color;
 
 public class GameManager {
+	
+	final class Pair<T> {
+
+		private T left;
+		private T right;
+
+		public T getL() {
+			return left;
+		}
+
+		public void setL(T left) {
+			this.left = left;
+		}
+	
+		public T getR() {
+			return right;
+		}
+	
+		public void setR(T right) {
+			this.right = right;
+		}
+	
+		public Pair(T left, T right)
+		{
+			if (left == null || right == null) { 
+				throw new IllegalArgumentException("left and right must be non-null!");
+			}
+			this.left = left;
+			this.right = right;
+		}
+
+		public boolean equals(Object o)
+		{
+			if (! (o instanceof Pair)) { return false; }
+			Pair p = (Pair)o;
+			return left.equals(p.left) && right.equals(p.right);
+		} 
+
+		public int hashCode()
+		{
+			return 7 * left.hashCode() + 13 * right.hashCode();
+		} 
+	}
+	    
 	
 	private Main main;
     
@@ -68,6 +116,8 @@ public class GameManager {
 	private Boolean[][] solution;
 	private Boolean[][] ourMatrix;
 	private Boolean[][] ourSolution;
+	
+	private List<Pair<Integer>> editables = new ArrayList<Pair<Integer>>();
 
     Service<?> handleOfflineService = new HandleOfflineService();
     Service<?> handleStartService = new HandleStartService();
@@ -150,6 +200,7 @@ public class GameManager {
     	restart.setOnMouseClicked(new EventHandler<Event>() {
     		@Override
     		public void handle(Event event) {
+    			editables.clear();
     			for(int i=0;i<matrix_size; i++) {
     				for (int j = 0; j < matrix_size; j++) {
     					given[i][j]=initial_given[i][j];
@@ -158,8 +209,10 @@ public class GameManager {
 							circles[j][i].setText("");
 							circles[j][i].setDisable(false);
 						}
-		    			if(matrix[i][j]==null)
-		    				circles[j][i].setStyle(colorNull);		    			
+		    			if(matrix[i][j]==null) {
+		    				circles[j][i].setStyle(colorNull);
+		    				editables.add(new Pair<Integer>(Integer.valueOf(i), Integer.valueOf(j)));
+		    			}
 		    			else if(matrix[i][j])
 		    				circles[j][i].setStyle(colorBlack);    			
 		    			else if(!matrix[i][j])
@@ -198,6 +251,7 @@ public class GameManager {
 		initial_given 	= new Boolean[matrix_size][matrix_size];
 		matrix 			= new Boolean[matrix_size][matrix_size];
 		solution 		= new Boolean[matrix_size][matrix_size];
+		editables.clear();
 	}
 	
 	
@@ -266,6 +320,7 @@ public class GameManager {
 		    			}
 		    			clearText();
 		    			checkMove();
+		    			checkMoveWithSolution(innerJ,innerI);
 		    		}
 		    	});
 			}
@@ -310,11 +365,11 @@ public class GameManager {
 	public void initMatrixFromWebSite() {
 		int problem_size = 0;
 		switch (matrix_size) {
-		case 6: problem_size = 1; break;
-		case 8: problem_size = 3; break;
-		case 10:problem_size = 5; break;
-		case 14:problem_size = 7; break;
-		case 20:problem_size = 9; break;
+			case 6: problem_size = 1; break;
+			case 8: problem_size = 3; break;
+			case 10:problem_size = 5; break;
+			case 14:problem_size = 7; break;
+			case 20:problem_size = 9; break;
 		}
         String html = downloadWebPage("https://www.puzzle-binairo.com/?size=" + problem_size);        
         Pattern pattern = Pattern.compile("var task = \'(.*?)\'");
@@ -334,9 +389,9 @@ public class GameManager {
 				given[i][j] = matrix[i][j] = value == 1;
 				initial_given[i][j] = given[i][j];
 			}
-			else 
+			else {
 				skip = (c - 'a'+1);
-			
+			}
 			for(int k=0;k<skip;++k) {
 				j++;
 				if(j==matrix_size) {
@@ -348,6 +403,13 @@ public class GameManager {
 		System.out.println("Puzzle:");
 		printMatrix(initial_given);
 		
+		for(int m = 0; m<matrix_size; m++) {
+			for(int n = 0; n<matrix_size; n++) {
+				if(given[m][n]==null) {
+					editables.add(new Pair<Integer>(Integer.valueOf(m),Integer.valueOf(n)));
+				}
+			}
+		}
 		getSolutionFromMiniZinc();
 	}
 	
@@ -392,21 +454,29 @@ public class GameManager {
 			return;
 		
 		Random random= new Random();
-		boolean hinted = false;
+	
+		int i = random.nextInt(editables.size());
+		System.out.println(editables.size());
+		Pair<Integer> pair = editables.get(i);
+		matrix[pair.getL()][pair.getR()] = solution[pair.getL()][pair.getR()];
+		given[pair.getL()][pair.getR()] = solution[pair.getL()][pair.getR()];
+		setFixedCircles(pair.getR(), pair.getL());
+		circles[pair.getR()][pair.getL()].setStyle(matrix[pair.getL()][pair.getR()] ? colorBlack : colorWhite);
+		editables.remove(i);
 		
-		while(!hinted) {
-			int i = random.nextInt(matrix_size);
-			int j = random.nextInt(matrix_size);
-			
-			if (given[i][j] == null && solution[i][j]!=matrix[i][j]) {
-				matrix[i][j] = solution[i][j];
-				given[i][j] = solution[i][j];
-				setFixedCircles(j, i);				
-				circles[j][i].setStyle(matrix[i][j] ? colorBlack : colorWhite);
-				
-				hinted = true;
-			}
-		}
+//		while(!hinted) {
+//			int i = random.nextInt(matrix_size);
+//			int j = random.nextInt(matrix_size);
+//			
+//			if (given[i][j] == null && solution[i][j]!=matrix[i][j]) {
+//				matrix[i][j] = solution[i][j];
+//				given[i][j] = solution[i][j];
+//				setFixedCircles(j, i);				
+//				circles[j][i].setStyle(matrix[i][j] ? colorBlack : colorWhite);
+//				
+//				hinted = true;
+//			}
+//		}
 		
 		checkMove();
 	}
@@ -517,6 +587,21 @@ public class GameManager {
 				error2.setText("");
 		});
 	}
+	
+	// Verifichiamo che il valore della cella fillata sia corretta o meno
+	private void checkMoveWithSolution(Integer innerI, Integer innerJ) {
+		if(editables.contains(new Pair<Integer>(innerI,innerJ))) {
+			System.out.println("contiene");
+			if(solution[innerI][innerJ]==matrix[innerI][innerJ]){
+				editables.remove(new Pair<Integer>(innerI,innerJ));
+			}
+		}
+		else {
+			System.out.println("non contiene");
+			editables.add(new Pair<Integer>(innerI,innerJ));
+		}
+		System.out.println(editables.size());
+	}
 
 	private boolean checkTheNumberInRows() {
 		for(int i=0; i<matrix_size; i++) {
@@ -591,7 +676,7 @@ public class GameManager {
 		
 		generatePuzzleFromSolution();	
 		System.out.println("Generated Puzzle:");
-		printMatrix(ourSolution);		
+		printMatrix(ourSolution);
 	}	
 
 	private void generateSolutionFromMatrixOffline() {
