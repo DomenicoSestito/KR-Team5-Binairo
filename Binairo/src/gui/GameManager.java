@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -89,6 +90,8 @@ public class GameManager {
 	private Label error1;
 	@FXML
 	private Label error2;
+	@FXML
+	private Label error3;
 	@FXML
     private Button start;
 	@FXML
@@ -262,7 +265,8 @@ public class GameManager {
 		Platform.runLater( () -> {
 			result.setText("");    			
 			error1.setText("");	  			
-			error2.setText("");	
+			error2.setText("");
+			error3.setText("");
 		});
 	}
 	
@@ -649,6 +653,8 @@ public class GameManager {
 			error1.setAlignment(Pos.CENTER);
 			error2.setTextFill(Color.web("#ff0000"));
 			error2.setAlignment(Pos.CENTER);
+			error3.setTextFill(Color.web("#ff0000"));
+			error3.setAlignment(Pos.CENTER);
 			if(!checkRowsThreeInARow() || !checkColumnsThreeInARow())
 				error1.setText("3 DI FILA");
 			else
@@ -657,9 +663,16 @@ public class GameManager {
 				error2.setText("NUMERO ERRATO");
 			else
 				error2.setText("");
+			if(checkEqualsRows())
+				error3.setText("PIU' RIGHE UGUALI");
+			else if (checkEqualsColumns())
+				error3.setText("PIU' COLONNE UGUALI");
+			else
+				error3.setText("");
 		});
 	}
 	
+
 	// Verifichiamo che il valore della cella fillata sia corretta o meno
 	private void checkMoveWithSolution(Integer innerI, Integer innerJ) {
 		if(editables.contains(new Pair<Integer>(innerI,innerJ))) {
@@ -750,6 +763,53 @@ public class GameManager {
 		return true;
 	}
 	
+	private boolean checkEqualsColumns() {
+		Boolean[] currentColumn;
+		for(int i=0; i<matrix_size; i++) {
+			currentColumn =getColumn(matrix,i);
+			if(containsNull(currentColumn))
+				continue;
+			for(int j=i+1; j<matrix_size; j++) {
+				if(Arrays.equals(currentColumn, getColumn(matrix,j))) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean checkEqualsRows() {
+		Boolean[] currentRow;
+		for(int i=0; i<matrix_size; i++) {
+			currentRow = matrix[i];
+			if(containsNull(currentRow))
+				continue;
+			for(int j=i+1; j<matrix_size; j++) {
+				if(Arrays.equals(currentRow, matrix[j])) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static Boolean[] getColumn(Boolean[][] array, int index){
+		Boolean[] column = new Boolean[array[0].length];
+	    for(int i=0; i<column.length; i++){
+	       column[i] = array[i][index];
+	    }
+	    return column;
+	}
+	
+	private static boolean containsNull(Boolean[] current) {
+		for(int i=0; i<current.length; i++) {
+			if(current[i]==null) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/*
 	 * Per ogni riga viene assegnato un valore (true o false alternato) in una colonna casuale
 	 * 

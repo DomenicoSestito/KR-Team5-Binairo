@@ -47,6 +47,7 @@
             <Label fx:id="error1" layoutX="6.0" layoutY="522.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
             <Button fx:id="offline" layoutX="149.0" layoutY="190.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="95.0" text="Offline" />
             <Label fx:id="error2" layoutX="6.0" layoutY="572.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
+            <Label fx:id="error3" layoutX="6.0" layoutY="622.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
             <Pane fx:id="loading" layoutX="266.0" layoutY="4.0" prefHeight="700.0" prefWidth="700.0">
                <children>
                   <ImageView fitHeight="257.0" fitWidth="189.0" layoutX="256.0" layoutY="256.0" pickOnBounds="true" preserveRatio="true">
