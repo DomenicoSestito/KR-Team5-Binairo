@@ -334,8 +334,8 @@ public class GameManager {
 				circles[i][j] = new Button();
 				circles[i][j].setShape(new Circle(1.5));
 				circles[i][j].setStyle(colorNull);
-				circles[i][j].setMinWidth((gridPane.getWidth()/matrix_size)-1);					
-				circles[i][j].setMinHeight((gridPane.getHeight()/matrix_size)-1);
+				circles[i][j].setMinSize(gridPane.getWidth()/matrix_size, gridPane.getHeight()/matrix_size);
+				circles[i][j].setMaxSize(gridPane.getWidth()/matrix_size, gridPane.getHeight()/matrix_size);
 				setFixedCircles(i, j);
     			circles[i][j].setOnMouseClicked(new EventHandler<Event>() {
 		    		@Override

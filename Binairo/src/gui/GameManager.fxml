@@ -12,24 +12,24 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="974.0" prefWidth="1283.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GameManager">
+<AnchorPane prefHeight="700.0" prefWidth="966.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GameManager">
    <children>
-      <Pane prefHeight="974.0" prefWidth="1284.0" style="-fx-background-color: lightgrey;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <Pane prefHeight="700.0" prefWidth="1000.0" style="-fx-background-color: lightgrey;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <Button fx:id="restart" layoutX="115.0" layoutY="371.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Restart" />
-            <Button fx:id="start" layoutX="43.0" layoutY="269.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="New" />
-            <Label layoutX="88.0" layoutY="187.0" text="Size">
+            <Button fx:id="restart" layoutX="88.0" layoutY="267.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="95.0" text="Restart" />
+            <Button fx:id="start" layoutX="27.0" layoutY="190.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="95.0" text="New" />
+            <Label layoutX="63.0" layoutY="119.0" text="Size">
                <font>
                   <Font size="25.0" />
                </font>
             </Label>
-            <ComboBox fx:id="size" layoutX="169.0" layoutY="187.0" prefHeight="36.0" prefWidth="74.0" />
-            <ImageView fitHeight="93.0" fitWidth="312.0" layoutX="19.0" layoutY="44.0" pickOnBounds="true" preserveRatio="true">
+            <ComboBox fx:id="size" layoutX="137.0" layoutY="119.0" prefHeight="36.0" prefWidth="74.0" />
+            <ImageView fitHeight="79.0" fitWidth="243.0" layoutX="14.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../img/binairo-logo.png" />
                </image>
             </ImageView>
-            <GridPane fx:id="gridPane" layoutX="326.0" layoutY="21.0" prefHeight="950.0" prefWidth="950.0" style="-fx-background-color: b0b0b0;">
+            <GridPane fx:id="gridPane" layoutX="266.0" prefHeight="700.0" prefWidth="700.0" style="-fx-background-color: b0b0b0;">
               <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -40,22 +40,22 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
             </GridPane>
-            <Button fx:id="hint" layoutX="115.0" layoutY="467.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Hint" />
-            <Button fx:id="done" layoutX="115.0" layoutY="562.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Done" />
-            <Label fx:id="result" layoutX="33.0" layoutY="875.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
-            <Button fx:id="exit" layoutX="115.0" layoutY="657.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Exit" />
-            <Label fx:id="error1" layoutX="33.0" layoutY="740.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
-            <Button fx:id="offline" layoutX="188.0" layoutY="269.0" mnemonicParsing="false" prefHeight="60.0" prefWidth="95.0" text="Offline" />
-            <Label fx:id="error2" layoutX="33.0" layoutY="808.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
-         </children>
-      </Pane>
-      <Pane fx:id="loading" prefHeight="892.0" prefWidth="1223.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <children>
-            <ImageView fitHeight="257.0" fitWidth="189.0" layoutX="735.0" layoutY="393.0" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@../img/load.gif" />
-               </image>
-            </ImageView>
+            <Button fx:id="hint" layoutX="88.0" layoutY="329.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="95.0" text="Hint" />
+            <Button fx:id="done" layoutX="88.0" layoutY="391.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="95.0" text="Done" />
+            <Label fx:id="result" layoutX="6.0" layoutY="622.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
+            <Button fx:id="exit" layoutX="88.0" layoutY="448.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="95.0" text="Exit" />
+            <Label fx:id="error1" layoutX="6.0" layoutY="522.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
+            <Button fx:id="offline" layoutX="149.0" layoutY="190.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="95.0" text="Offline" />
+            <Label fx:id="error2" layoutX="6.0" layoutY="572.0" prefHeight="50.0" prefWidth="260.0" textAlignment="JUSTIFY" />
+            <Pane fx:id="loading" layoutX="266.0" layoutY="4.0" prefHeight="700.0" prefWidth="700.0">
+               <children>
+                  <ImageView fitHeight="257.0" fitWidth="189.0" layoutX="256.0" layoutY="256.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../img/load.gif" />
+                     </image>
+                  </ImageView>
+               </children>
+            </Pane>
          </children>
       </Pane>
    </children>
